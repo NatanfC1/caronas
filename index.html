@@ -6,6 +6,10 @@
 <meta name="author" content="NFC Soluções em Tecnologia e Infraestrutura">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<title>NFC Caronas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap">
+<style>html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font-size:14px}[hidden]{display:none!important}img{max-width:100%}</style>
 <style>/* Layout: app de uma coluna, celular primeiro — faixa de marca NFC no topo, abas, semana em cartões de dia com 4 vagas por trecho */
 :root{
   --bg:#EEF3F6; --surface:#FFFFFF; --ink:#0C111B; --muted:#55657A; --line:#D3DDE5;
@@ -115,7 +119,8 @@ details.tool[open] summary{margin-bottom:10px}
 .brandbar .sync{position:relative;z-index:1;color:var(--brand-pale);font-size:.75rem}
 .corrigindo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-color:var(--accent);background:var(--chip);color:var(--chip-ink)}
 .relcard{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.tabs{overflow-x:auto}.tabs button{white-space:nowrap;padding-inline:8px}
+.tabs{gap:2px}.tabs button{white-space:nowrap;padding:9px 4px;flex:1 1 auto;min-width:0}
+@media (max-width:440px){.tabs button{font-size:.74rem;padding:8px 2px}}
 .foot{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:.75rem;text-align:center;padding-top:6px}
 h1,h2,h3{letter-spacing:0}
 .stat .val{font-size:1.35rem}
