@@ -105,13 +105,13 @@ details.tool[open] summary{margin-bottom:10px}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-weight:600;font-size:.9rem;z-index:20}
 .copybox{width:100%;margin-top:8px}
 .brandbar{position:relative;overflow:hidden;border-radius:14px;padding:16px 18px 14px;color:#fff;display:flex;flex-direction:column;gap:10px;
-  background:linear-gradient(104deg,var(--brand-dark) 0 63%,var(--brand-cyan) 63% 63.7%,var(--brand-teal) 63.7% 100%)}
+  background:linear-gradient(104deg,var(--brand-dark) 0 80%,var(--brand-cyan) 80% 80.8%,var(--brand-teal) 80.8% 100%)}
 .brandbar::after{content:"";position:absolute;right:-46px;top:50%;width:190px;height:190px;transform:translateY(-50%);background:rgba(255,255,255,.09);-webkit-mask:var(--logo) center/contain no-repeat;mask:var(--logo) center/contain no-repeat;pointer-events:none}
 .brandrow{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
 .logo{display:inline-block;width:46px;height:46px;flex:none;background:currentColor;-webkit-mask:var(--logo) center/contain no-repeat;mask:var(--logo) center/contain no-repeat}
 .logo.sm{width:18px;height:18px}
-.brandname .nfc{font-family:var(--display);font-weight:700;font-size:1.25rem;letter-spacing:.02em;line-height:1.05}
-.brandname .nfc b{color:var(--brand-cyan);font-weight:700}
+.brandname.nfc{font-size:1.55rem!important;color:#fff;margin:0;font-family:var(--display);font-weight:700;font-size:1.25rem;letter-spacing:.02em;line-height:1.05}
+.brandname.nfc b{color:var(--brand-cyan);font-weight:700}
 .brandname .tag{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:#C9D6E2}
 .approw{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;position:relative;z-index:1}
 .approw h1{font-size:1.45rem;color:#fff}
@@ -155,8 +155,7 @@ h1,h2,h3{letter-spacing:0}
 <div class="wrap">
   <header class="brandbar">
     <div class="brandrow"><span class="logo" role="img" aria-label="Logo NFC"></span>
-      <div class="brandname"><div class="nfc">NFC <b>SOLUÇÕES</b></div><div class="tag">Tecnologia e infraestrutura</div></div></div>
-    <div class="approw"><h1>Caronas</h1><span class="route">Piumhi ⇄ Capitólio</span></div>
+      <h1 class="brandname nfc">NFC <b>CARONAS</b></h1></div>
     <span class="sync" id="sync">Carregando…</span>
   </header>
 
