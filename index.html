@@ -113,6 +113,9 @@ details.tool[open] summary{margin-bottom:10px}
 .approw h1{font-size:1.45rem;color:#fff}
 .brandbar .route{background:transparent;border:1px solid var(--brand-cyan);color:var(--brand-pale);font-family:var(--body);font-weight:600;font-size:.72rem;letter-spacing:.08em;padding:2px 9px;border-radius:99px}
 .brandbar .sync{position:relative;z-index:1;color:var(--brand-pale);font-size:.75rem}
+.corrigindo{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border-color:var(--accent);background:var(--chip);color:var(--chip-ink)}
+.relcard{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tabs{overflow-x:auto}.tabs button{white-space:nowrap;padding-inline:8px}
 .foot{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:.75rem;text-align:center;padding-top:6px}
 h1,h2,h3{letter-spacing:0}
 .stat .val{font-size:1.35rem}
@@ -156,6 +159,7 @@ h1,h2,h3{letter-spacing:0}
     <button role="tab" data-tab="semana" aria-selected="true">Semana</button>
     <button role="tab" data-tab="pessoas" aria-selected="false">Cobranças</button>
     <button role="tab" data-tab="gasolina" aria-selected="false">Gasolina</button>
+    <button role="tab" data-tab="historico" aria-selected="false">Histórico</button>
     <button role="tab" data-tab="ajustes" aria-selected="false">Ajustes</button>
   </div>
 
@@ -173,7 +177,7 @@ function carregar(o){const x=Object.assign(JSON.parse(JSON.stringify(DEFAULT)),J
   x.pessoas.forEach(p=>{if(!p.tarifa||(p.tarifa!=='proprio'&&!x.tarifas.some(t=>t.id===p.tarifa)))p.tarifa=x.tarifas[0].id});return x}
 let S=carregar(null);
 let mes=new Date().toISOString().slice(0,7),extOpen=null,vagasOpen=false,tab='semana', semana=mondayOf(new Date()), importPreview=null, novaPessoaSlot=null, payOpen=null, editOpen=null, copyText=null;
-try{const h=location.hash.slice(1); if(['semana','pessoas','gasolina','ajustes'].includes(h)) tab=h;}catch(e){}
+try{const h=location.hash.slice(1); if(['semana','pessoas','gasolina','historico','ajustes'].includes(h)) tab=h;}catch(e){}
 
 /* ---------- datas ---------- */
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
@@ -295,7 +299,7 @@ function render(){
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
   render._ext={};const v=document.getElementById('view');
   const focusId=document.activeElement?.id;
-  v.innerHTML=tab==='semana'?telaSemana():tab==='pessoas'?telaPessoas():tab==='gasolina'?telaGasolina():telaAjustes();
+  v.innerHTML=tab==='semana'?telaSemana():tab==='pessoas'?telaPessoas():tab==='gasolina'?telaGasolina():tab==='historico'?telaHistorico():telaAjustes();
   if(focusId){const el=document.getElementById(focusId);if(el)el.focus()}
 }
 
@@ -305,9 +309,7 @@ function telaSemana(){
   let rec=0,custo=0;ks.forEach(k=>{const v=S.viagens[k];rec+=receitaDia(v);custo+=custoDiaK(k)});
   const saldo=rec-custo;const pct=custo?Math.min(100,rec/custo*100):0;
   let h=`<div class="days">
-  <div class="card weeknav"><button class="btn" data-act="sem" data-d="-7" aria-label="Semana anterior">‹</button>
-    <h2>${ddmm(semana)} a ${ddmm(addDays(semana,4))}</h2>
-    <button class="btn" data-act="sem" data-d="7" aria-label="Próxima semana">›</button></div>
+  ${iso(semana)!==iso(mondayOf(new Date()))?`<div class="card corrigindo"><span>Corrigindo a semana de <b>${ddmm(semana)} a ${ddmm(addDays(semana,4))}</b></span><button class="btn sm pri" data-act="semhoje">Voltar para esta semana</button></div>`:`<div class="card weeknav"><h2>Esta semana · ${ddmm(semana)} a ${ddmm(addDays(semana,4))}</h2></div>`}
   <div class="card"><div class="stats">
     <div class="stat"><div class="lbl">Caronas</div><div class="val">${brl(rec)}</div></div>
     <div class="stat"><div class="lbl">Gasolina</div><div class="val">${brl(custo)}</div></div>
@@ -319,7 +321,7 @@ function telaSemana(){
   h+=`<details class="tool" id="vagasbox" ${vagasOpen?'open':''}><summary>Gerar mensagem de vagas para o grupo</summary>
     <p class="note" style="margin:0 0 8px">Só entram os trechos com vaga livre, de hoje em diante nesta semana. Trechos de hoje que já passaram do horário ficam de fora.</p>
     <div class="row"><label class="chk"><input type="checkbox" data-act="mvagas" ${c.mostrarVagas?'checked':''}> Mostrar quantas vagas</label><span class="spacer"></span><button class="btn pri" data-act="copvagas" ${mv?'':'disabled'}>Copiar mensagem</button></div>
-    ${mv?`<textarea readonly class="copybox" id="vagastxt" style="min-height:190px">${esc(mv)}</textarea>`:`<p class="empty" style="padding:12px 0">Sem vagas livres no resto desta semana. Use a seta › para ver a próxima.</p>`}
+    ${mv?`<textarea readonly class="copybox" id="vagastxt" style="min-height:190px">${esc(mv)}</textarea>`:`<p class="empty" style="padding:12px 0">Sem vagas livres no resto desta semana.</p>`}
     <p class="note" style="margin:6px 0 0">Horários e texto final ficam em Ajustes.</p></details>`;
   if(!S.pessoas.length)h+=`<div class="card empty">Nenhum passageiro cadastrado ainda.<br>Cole sua mensagem do WhatsApp abaixo ou cadastre em <b>Pessoas e cobranças</b>.</div>`;
   ks.forEach((k,i)=>h+=cartaoDia(k,i));
@@ -468,6 +470,7 @@ function telaGasolina(){
     <div class="stat"><div class="lbl">Caronas − abastecido</div><div class="val ${gerado-gasto>=0?'pos':'neg'}">${brl(gerado-gasto)}</div></div></div>
     <p class="note calc" style="margin:8px 0 0">${litros?`${litros.toFixed(1).replace('.',',')} litros, média ${brl(gasto/litros)} o litro. `:''}Gasto estimado pelos ${diasRodados} dia(s) rodados: ${brl(custoEst)}. O valor abastecido no mês nem sempre bate com o gasto, porque o tanque pode ficar cheio para o mês seguinte.</p></div>
 
+  <div class="card relcard"><div><b>Relatório do mês</b><div class="note">Gasolina, caronas, quem pagou e quem deve, dia a dia. Abre no Excel.</div></div><button class="btn pri" data-act="relxml">Baixar relatório (.xml)</button></div>
   <div class="card"><h2 style="font-size:1.2rem;margin-bottom:8px">Consumo real do Polo</h2><div class="stats" style="grid-template-columns:repeat(3,1fr)">
     <div class="stat"><div class="lbl">Ida</div><div class="val">${ci.n?fmtKml(ci.media):'—'}</div><div class="note">${ci.n} anotação(ões)</div></div>
     <div class="stat"><div class="lbl">Volta</div><div class="val">${cv.n?fmtKml(cv.media):'—'}</div><div class="note">${cv.n} anotação(ões)</div></div>
@@ -519,10 +522,51 @@ function deXML(txt){
 }
 function lerBackup(txt){txt=String(txt).trim();const o=txt.startsWith('<')?deXML(txt):JSON.parse(txt);if(!o.config||!Array.isArray(o.pessoas))throw new Error('formato');return carregar(o)}
 
+function baixar(nomeArq,txt){const b=new Blob([txt],{type:'application/xml'});const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download=nomeArq;document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);toast('Arquivo baixado')}
+/* ---------- relatório mensal ---------- */
+function n2(x){return (Math.round((+x||0)*100)/100).toFixed(2)}
+function relatorioXML(m){
+  const [y,mm]=m.split('-').map(Number);const ini=m+'-01',fim=iso(new Date(y,mm,0));const dentro=k=>k>=ini&&k<=fim;
+  const L=['<?xml version="1.0" encoding="UTF-8"?>',`<relatorio_mensal mes="${m}" gerado="${new Date().toISOString()}" empresa="NFC Soluções em Tecnologia e Infraestrutura">`];
+  const ks=Object.keys(S.viagens).filter(dentro).sort();
+  let ger=0,est=0,dias=0;const cI=[],cV=[];
+  const linhasDia=ks.map(k=>{const v=S.viagens[k];const rec=receitaDia(v),cu=custoDiaK(k);if(!v.off){ger+=rec;est+=cu;dias++;if(v.consIda>0)cI.push(+v.consIda);if(v.consVolta>0)cV.push(+v.consVolta)}
+    return `    <dia data="${k}" dia_semana="${DIAS_CURTO[fromIso(k).getDay()]}" nao_fui="${v.off?'sim':'nao'}" ida="${xa(v.ida.map(nome).join(', '))}" volta="${xa(v.volta.map(nome).join(', '))}" passageiros_ida="${v.ida.length}" passageiros_volta="${v.volta.length}" caronas="${n2(rec)}" gasolina_estimada="${n2(cu)}" resultado="${n2(rec-cu)}" consumo_ida="${v.consIda||''}" consumo_volta="${v.consVolta||''}" preco_litro="${n2(precoEm(k))}"${v.obs?` obs="${xa(v.obs)}"`:''}/>`});
+  const abs=S.abastecimentos.filter(a=>dentro(a.data)).sort((a,b)=>a.data.localeCompare(b.data));
+  const gasto=abs.reduce((s,a)=>s+a.valor,0),lit=abs.reduce((s,a)=>s+(a.litros||0),0);
+  const pags=S.pagamentos.filter(p=>dentro(p.data)).sort((a,b)=>a.data.localeCompare(b.data));
+  const rec=pags.reduce((s,p)=>s+p.valor,0);
+  const harm=a=>a.length?a.length/a.reduce((s,c)=>s+1/c,0):0;
+  let aberto=0,aVencer=0;const linhasP=[];
+  S.pessoas.forEach(p=>{const e=extrato(p.id);const ds=e.dias.filter(d=>dentro(d.k));if(!ds.length&&!pags.some(x=>x.pid===p.id))return;
+    let tr=0;ds.forEach(d=>{const v=S.viagens[d.k];tr+=(v.ida.includes(p.id)?1:0)+(v.volta.includes(p.id)?1:0)});
+    const val=ds.reduce((s,d)=>s+d.valor,0),pg=ds.reduce((s,d)=>s+d.pago,0),ab=ds.filter(d=>d.k<=HOJE).reduce((s,d)=>s+d.valor-d.pago,0),av=ds.filter(d=>d.k>HOJE).reduce((s,d)=>s+d.valor-d.pago,0);
+    aberto+=ab;aVencer+=av;
+    linhasP.push(`    <passageiro nome="${xa(p.nome)}" tipo="${p.fixo?'fixo':'avulso'}" paga="${p.modo==='semana'?'por semana':'por dia'}" valor_ida_volta="${n2(valores(p.id).d)}" valor_trecho="${n2(valores(p.id).t)}" dias="${ds.length}" trechos="${tr}" total="${n2(val)}" pago="${n2(pg)}" em_aberto="${n2(ab)}" a_vencer="${n2(av)}"/>`)});
+  L.push(`  <resumo caronas_do_mes="${n2(ger)}" recebido_no_mes="${n2(rec)}" em_aberto="${n2(aberto)}" a_vencer="${n2(aVencer)}" gasolina_abastecida="${n2(gasto)}" litros_abastecidos="${lit.toFixed(2)}" preco_medio_litro="${lit?n2(gasto/lit):''}" dias_rodados="${dias}" km_rodados="${dias*2*S.config.kmTrecho}" gasolina_estimada_dos_dias="${n2(est)}" consumo_medio_ida="${cI.length?harm(cI).toFixed(1):''}" consumo_medio_volta="${cV.length?harm(cV).toFixed(1):''}" resultado_caronas_menos_abastecido="${n2(ger-gasto)}" resultado_caronas_menos_estimado="${n2(ger-est)}"/>`);
+  L.push('  <passageiros>',...linhasP,'  </passageiros>');
+  L.push('  <dias>',...linhasDia,'  </dias>');
+  L.push('  <abastecimentos>',...abs.map(a=>`    <abastecimento data="${a.data}" valor="${n2(a.valor)}" preco_litro="${n2(a.preco)}" litros="${(a.litros||0).toFixed(2)}" km="${a.km||''}"/>`),'  </abastecimentos>');
+  L.push('  <pagamentos>',...pags.map(x=>`    <pagamento data="${x.data}" nome="${xa(nome(x.pid))}" valor="${n2(x.valor)}" dias_pagos="${(x.dias||[]).map(k=>ddmm(fromIso(k))).join(', ')}" obs="${xa(x.obs||'')}"/>`),'  </pagamentos>');
+  L.push('</relatorio_mensal>');return L.join('\n');
+}
+/* ---------- histórico ---------- */
+function telaHistorico(){
+  const atual=iso(mondayOf(new Date()));
+  const sems=[...new Set(Object.keys(S.viagens).map(k=>iso(mondayOf(fromIso(k)))))].filter(w=>w<atual).sort().reverse();
+  let h=`<div class="days"><div class="card"><h2 style="font-size:1.1rem">Semanas anteriores</h2><p class="note" style="margin:4px 0 0">${sems.length?sems.length+' semana(s) guardada(s). A aba Semana mostra só a semana atual.':'Ainda não há semanas anteriores. Elas aparecem aqui sozinhas quando a semana virar.'}</p></div>`;
+  sems.forEach(w=>{const seg=fromIso(w),ks=semanaKeys(seg);let rec=0,cu=0;const ps=new Set();
+    ks.forEach(k=>{const v=S.viagens[k];if(!v||v.off)return;rec+=receitaDia(v);cu+=custoDiaK(k);v.ida.concat(v.volta).forEach(id=>ps.add(id))});
+    h+=`<div class="person"><div class="ph"><h3>${ddmm(seg)} a ${ddmm(addDays(seg,4))}</h3><span class="spacer"></span><button class="btn sm" data-act="editsem" data-w="${w}">Corrigir</button></div>
+    <div class="nums"><div>Caronas<b>${brl(rec)}</b></div><div>Gasolina<b>${brl(cu)}</b></div><div>Sobra<b class="${rec-cu>=0?'pos':'neg'}">${brl(rec-cu)}</b></div></div>
+    <details><summary class="note" style="cursor:pointer">${ps.size} passageiro(s) · ver dias</summary><div class="hist">${ks.map((k,i)=>{const v=S.viagens[k];if(!v)return '';return `<div>${DIAS[i]} ${ddmm(fromIso(k))}: ${v.off?'não fui':`ida ${esc(v.ida.map(nome).join(', ')||'—')} · volta ${esc(v.volta.map(nome).join(', ')||'—')}`}</div>`}).join('')}</div></details></div>`});
+  return h+'</div>';
+}
+
 /* ---------- ações ---------- */
 document.addEventListener('click',e=>{
   const t=e.target.closest('[data-tab],[data-act]');if(!t||t.tagName==='SELECT'||t.type==='checkbox'||t.tagName==='INPUT')return;
-  if(t.dataset.tab){tab=t.dataset.tab;copyText=null;try{history.replaceState(null,'','#'+tab)}catch(e){}render();return}
+  if(t.dataset.tab){tab=t.dataset.tab;if(tab==='semana')semana=mondayOf(new Date());copyText=null;try{history.replaceState(null,'','#'+tab)}catch(e){}render();return}
   const a=t.dataset.act,id=t.dataset.id;
   if(a==='sem'){semana=addDays(semana,+t.dataset.d);importPreview=null;copyText=null;render()}
   else if(a==='rm'){const v=dia(t.dataset.k);v[t.dataset.leg]=v[t.dataset.leg].filter(x=>x!==id);salvar();render()}
@@ -564,6 +608,9 @@ document.addEventListener('click',e=>{
     mes=(document.getElementById('ab-data').value||HOJE).slice(0,7);salvar();render();toast('Abastecimento salvo')}
   else if(a==='abdel'){S.abastecimentos=S.abastecimentos.filter(x=>x.id!==id);salvar();render();toast('Abastecimento apagado')}
   else if(a==='bkfile'){const b=new Blob([paraXML()],{type:'application/xml'});const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download='caronas-backup-'+HOJE+'.xml';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);try{localStorage.setItem('caronas-ultimo-backup',HOJE)}catch(e){}}
+  else if(a==='editsem'){semana=fromIso(t.dataset.w);tab='semana';try{history.replaceState(null,'','#semana')}catch(e){}render();scrollTo(0,0)}
+  else if(a==='semhoje'){semana=mondayOf(new Date());render()}
+  else if(a==='relxml'){baixar('caronas-relatorio-'+mes+'.xml',relatorioXML(mes))}
   else if(a==='bkcopy')copiar(JSON.stringify(S));
   else if(a==='bkload'){try{S=lerBackup(document.getElementById('bk').value);salvar();render();toast('Dados restaurados')}catch(e){toast('Texto inválido')}}
 });
