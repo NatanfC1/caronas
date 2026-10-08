@@ -1,0 +1,582 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1B2230">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+<title>Caronas Piumhi–Capitólio</title>
+</head><body>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: app de uma coluna, celular primeiro — abas no topo, semana em cartões de dia com 4 vagas por trecho */
+:root{
+  --bg:#ECEEE9; --surface:#FFFFFF; --ink:#1B2230; --muted:#5D6672; --line:#D6DAD2;
+  --accent:#E3A400; --accent-ink:#1B2230; --chip:#F5ECC9; --chip-ink:#3B3110;
+  --ok:#1E7656; --warn:#A85500; --bad:#B3261E; --okbg:#DCEFE5; --badbg:#F8E1DE; --warnbg:#FBEBD8;
+  --display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --body:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12161C; --surface:#1B2129; --ink:#E8EBEE; --muted:#9AA3AE; --line:#2C3440;
+  --accent:#F2B92B; --accent-ink:#12161C; --chip:#3A3220; --chip-ink:#F5E4AE;
+  --ok:#4CC38A; --warn:#F0A04B; --bad:#F2726B; --okbg:#173326; --badbg:#3A1E1C; --warnbg:#3A2A16; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12161C; --surface:#1B2129; --ink:#E8EBEE; --muted:#9AA3AE; --line:#2C3440;
+  --accent:#F2B92B; --accent-ink:#12161C; --chip:#3A3220; --chip-ink:#F5E4AE;
+  --ok:#4CC38A; --warn:#F0A04B; --bad:#F2726B; --okbg:#173326; --badbg:#3A1E1C; --warnbg:#3A2A16; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:14px 60px;display:flex;flex-direction:column;gap:14px}
+h1,h2,h3{font-family:var(--display);font-weight:700;letter-spacing:.01em;margin:0;text-wrap:balance}
+h1{font-size:1.7rem;line-height:1.05}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.route{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:var(--accent-ink);font-family:var(--display);font-weight:700;font-size:.95rem;letter-spacing:.06em;text-transform:uppercase;padding:3px 10px;border-radius:4px}
+.sync{font-size:.8rem;color:var(--muted)}
+.tabs{display:flex;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:4px;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.tabs button{flex:1;border:0;background:transparent;color:var(--muted);font:600 .95rem var(--body);padding:9px 6px;border-radius:7px;cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg)}
+button,input,select,textarea{font:inherit;color:inherit}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:600;font-size:.9rem}
+.btn:hover{border-color:var(--muted)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.sm{padding:4px 9px;font-size:.82rem}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text],input[type=number],input[type=date],select,textarea{background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0}
+textarea{width:100%;min-height:150px;resize:vertical;font-size:.9rem}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.weeknav h2{font-size:1.25rem;text-align:center;flex:1}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.stat .val{font-family:var(--display);font-weight:700;font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1.1}
+.pos{color:var(--ok)} .neg{color:var(--bad)}
+.bar{height:8px;background:var(--bg);border-radius:4px;overflow:hidden;margin-top:10px;border:1px solid var(--line)}
+.bar i{display:block;height:100%;background:var(--ok)}
+.note{font-size:.82rem;color:var(--muted)}
+.days{display:flex;flex-direction:column;gap:10px}
+.day{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.day.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.day.off{opacity:.62}
+.dayhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dayhead h3{font-size:1.25rem}
+.dayhead .date{color:var(--muted);font-variant-numeric:tabular-nums}
+.pill{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:99px;background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.pill.hoje{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pill.full{background:var(--badbg);color:var(--bad);border-color:transparent}
+.pill.ok{background:var(--okbg);color:var(--ok);border-color:transparent}
+.pill.warn{background:var(--warnbg);color:var(--warn);border-color:transparent}
+.spacer{flex:1}
+.leg{display:grid;grid-template-columns:62px 1fr;gap:8px;align-items:start}
+.leg .lname{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.95rem;padding-top:6px}
+.leg .lname small{display:block;font-family:var(--body);font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted);font-size:.75rem}
+.seats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+@media (max-width:440px){.seats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.seat{min-height:36px;border-radius:8px;display:flex;align-items:center;min-width:0}
+.seat.taken{background:var(--chip);color:var(--chip-ink);padding:0 4px 0 10px;font-weight:600;justify-content:space-between;gap:4px}
+.seat.taken span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seat.taken.over{background:var(--badbg);color:var(--bad)}
+.seat.taken button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:1.1rem;line-height:1;padding:4px 6px;opacity:.7}
+.seat select,.seat input{width:100%;height:36px;border-style:dashed;color:var(--muted);background:transparent}
+.dayfoot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.dayfoot input{flex:1;min-width:140px;font-size:.85rem}
+.chk{display:inline-flex;align-items:center;gap:5px;font-size:.85rem;color:var(--muted);cursor:pointer}
+details.tool{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+details.tool summary{cursor:pointer;font-weight:600}
+details.tool[open] summary{margin-bottom:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.preview{font-size:.88rem;display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.people{display:flex;flex-direction:column;gap:10px}
+.person{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.person .ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.person .ph h3{font-size:1.25rem}
+.person .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;font-variant-numeric:tabular-nums}
+.person .nums div{font-size:.8rem;color:var(--muted)}
+.person .nums b{display:block;font-family:var(--display);font-size:1.25rem;color:var(--ink)}
+.person .nums b.neg{color:var(--bad)} .person .nums b.pos{color:var(--ok)}
+.hist{font-size:.85rem;color:var(--muted);display:flex;flex-direction:column;gap:2px;font-variant-numeric:tabular-nums}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.form label{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted);font-weight:600}
+.empty{text-align:center;color:var(--muted);padding:22px 10px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:9px 16px;border-radius:8px;font-weight:600;font-size:.9rem;z-index:20}
+.copybox{width:100%;margin-top:8px}
+.tick{color:var(--ok);font-weight:700}
+.cons{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+.cons label{display:inline-flex;align-items:center;gap:5px}
+.cons input{width:72px;padding:5px 7px}
+.erow.ab{grid-template-columns:60px 1fr auto}
+.payform{display:flex;flex-direction:column;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.paydays{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:6px}
+.chk.pd{color:var(--ink);font-variant-numeric:tabular-nums}
+.chk.pd em{color:var(--muted);font-style:normal;font-size:.8rem}
+.ext{display:flex;flex-direction:column;gap:4px;margin-top:6px}
+.erow{display:grid;grid-template-columns:90px 1fr auto auto;gap:8px;align-items:center;font-size:.88rem;font-variant-numeric:tabular-nums}
+.tarifas{display:flex;flex-direction:column;gap:8px}
+.trow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) auto auto;gap:8px;align-items:end;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.trow.novo{border-bottom:0;padding-bottom:0}
+.trow label{display:flex;flex-direction:column;gap:3px;font-size:.75rem;color:var(--muted);font-weight:600}
+.trow input{width:100%}
+.trow .note{padding-bottom:8px;white-space:nowrap}
+@media (max-width:560px){.trow{grid-template-columns:1fr 1fr}.trow>input{grid-column:1/-1}}
+.calc{font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion: no-preference){.seat.taken{transition:background .15s}}
+</style>
+
+<div class="wrap">
+  <div class="top">
+    <div>
+      <span class="route">Piumhi ⇄ Capitólio</span>
+      <h1 style="margin-top:6px">Caronas</h1>
+    </div>
+    <span class="sync" id="sync">Carregando…</span>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" data-tab="semana" aria-selected="true">Semana</button>
+    <button role="tab" data-tab="pessoas" aria-selected="false">Cobranças</button>
+    <button role="tab" data-tab="gasolina" aria-selected="false">Gasolina</button>
+    <button role="tab" data-tab="ajustes" aria-selected="false">Ajustes</button>
+  </div>
+
+  <main id="view"></main>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const DIAS=['Segunda','Terça','Quarta','Quinta','Sexta'];
+const DEFAULT={config:{kmTrecho:32,consumo:12.8,gasolina:6.10,vagas:4,horaIda:'07h30',horaVolta:'17h00',mostrarVagas:false,rodape:'🚨Tenho vagas de Segunda a Sexta\n➡️Interessados favor chamar no privado'},tarifas:[{id:'padrao',nome:'Padrão',valorDia:28,valorTrecho:14}],pessoas:[],viagens:{},pagamentos:[],abastecimentos:[]};
+function carregar(o){const x=Object.assign(JSON.parse(JSON.stringify(DEFAULT)),JSON.parse(JSON.stringify(o||{})));
+  x.config=Object.assign({},DEFAULT.config,(o&&o.config)||{});
+  if(!o||!Array.isArray(o.tarifas)||!o.tarifas.length){x.tarifas=[{id:'padrao',nome:'Padrão',valorDia:+(x.config.valorDia??28),valorTrecho:+(x.config.valorTrecho??14)}]}
+  x.pessoas.forEach(p=>{if(!p.tarifa||(p.tarifa!=='proprio'&&!x.tarifas.some(t=>t.id===p.tarifa)))p.tarifa=x.tarifas[0].id});return x}
+let S=carregar(null);
+let mes=new Date().toISOString().slice(0,7),extOpen=null,vagasOpen=false,tab='semana', semana=mondayOf(new Date()), importPreview=null, novaPessoaSlot=null, payOpen=null, editOpen=null, copyText=null;
+try{const h=location.hash.slice(1); if(['semana','pessoas','gasolina','ajustes'].includes(h)) tab=h;}catch(e){}
+
+/* ---------- datas ---------- */
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function fromIso(s){const [y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)}
+function mondayOf(d){d=new Date(d.getFullYear(),d.getMonth(),d.getDate());const w=d.getDay();if(w===6)d.setDate(d.getDate()+2);else if(w===0)d.setDate(d.getDate()+1);else d.setDate(d.getDate()-(w-1));return d}
+function addDays(d,n){const x=new Date(d);x.setDate(x.getDate()+n);return x}
+function ddmm(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')}
+const HOJE=iso(new Date());mes=HOJE.slice(0,7);
+
+/* ---------- utilidades ---------- */
+const brl=v=>(Math.round(v*100)/100).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim();
+const uid=()=>Math.random().toString(36).slice(2,10);
+const pessoa=id=>S.pessoas.find(p=>p.id===id);
+const nome=id=>pessoa(id)?.nome||'?';
+function dia(key){if(!S.viagens[key])S.viagens[key]={ida:[],volta:[],obs:'',off:false};return S.viagens[key]}
+function precoEm(k){const a=S.abastecimentos.filter(x=>x.data<=k&&x.preco>0).sort((a,b)=>b.data.localeCompare(a.data))[0];return a?a.preco:S.config.gasolina}
+function mediaConsumo(campo){const vs=[];Object.keys(S.viagens).sort().slice(-60).forEach(k=>{const v=S.viagens[k];(campo?[campo]:['consIda','consVolta']).forEach(f=>{if(v[f]>0)vs.push(+v[f])})});
+  return {n:vs.length,media:vs.length?vs.length/vs.reduce((a,c)=>a+1/c,0):S.config.consumo}}
+const fmtKml=x=>x.toFixed(1).replace('.',',')+' km/l';
+function consTrecho(k,leg){const v=S.viagens[k];const c=v&&v[leg==='ida'?'consIda':'consVolta'];return c>0?+c:mediaConsumo().media}
+function custoTrecho(k,leg){return S.config.kmTrecho/consTrecho(k,leg)*precoEm(k)}
+function custoDiaK(k){const v=S.viagens[k];if(v&&v.off)return 0;return custoTrecho(k,'ida')+custoTrecho(k,'volta')}
+function custoDia(){return 2*S.config.kmTrecho/mediaConsumo().media*precoEm(HOJE)}
+function tarifaDe(p){return S.tarifas.find(t=>t.id===p?.tarifa)||S.tarifas[0]}
+function valores(pid){const p=pessoa(pid);if(p&&p.tarifa==='proprio')return {d:+p.valorDia||0,t:+p.valorTrecho||0};const t=tarifaDe(p);return {d:+t.valorDia||0,t:+t.valorTrecho||0}}
+function rotuloTarifa(p){if(p.tarifa==='proprio')return 'Valor próprio · '+brl(+p.valorDia||0)+' / '+brl(+p.valorTrecho||0);const t=tarifaDe(p);return t.nome+' · '+brl(t.valorDia)+' / '+brl(t.valorTrecho)}
+function cobranca(v,pid){if(!v||v.off)return 0;const a=v.ida.includes(pid),b=v.volta.includes(pid);if(!a&&!b)return 0;const x=valores(pid);return a&&b?x.d:x.t}
+function receitaDia(v){if(!v||v.off)return 0;const ids=new Set([...v.ida,...v.volta]);let t=0;ids.forEach(id=>t+=cobranca(v,id));return t}
+function devido(pid,ate){let t=0;for(const k in S.viagens){if(ate&&k>ate)continue;t+=cobranca(S.viagens[k],pid)}return t}
+const DIAS_CURTO=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+function extrato(pid){
+  const dias=Object.keys(S.viagens).sort().map(k=>{const v=S.viagens[k];const c=cobranca(v,pid);if(!c)return null;const a=v.ida.includes(pid),b=v.volta.includes(pid);return {k,valor:c,pago:0,tipo:a&&b?'ida e volta':a?'só ida':'só volta'}}).filter(Boolean);
+  const byK={};dias.forEach(d=>byK[d.k]=d);let pool=0;
+  S.pagamentos.filter(x=>x.pid===pid).sort((a,b)=>a.data.localeCompare(b.data)).forEach(x=>{let r=x.valor;
+    (x.dias||[]).slice().sort().forEach(k=>{const d=byK[k];if(!d||r<=0)return;const u=Math.min(r,d.valor-d.pago);d.pago+=u;r-=u});pool+=r});
+  dias.forEach(d=>{if(pool<=0)return;const u=Math.min(pool,d.valor-d.pago);d.pago+=u;pool-=u});
+  let aberto=0,aVencer=0,adiantado=0;dias.forEach(d=>{const r=d.valor-d.pago;if(d.k<=HOJE)aberto+=r;else{aVencer+=r;adiantado+=d.pago}});
+  return {dias,aberto:Math.max(0,aberto),aVencer,adiantado,credito:Math.max(0,pool)};
+}
+function pago(pid){return S.pagamentos.filter(p=>p.pid===pid).reduce((a,p)=>a+p.valor,0)}
+function semanaKeys(seg){return [0,1,2,3,4].map(i=>iso(addDays(seg,i)))}
+function findByName(n){const k=norm(n);return S.pessoas.find(p=>norm(p.nome)===k)||S.pessoas.find(p=>norm(p.nome).split(' ')[0]===k)}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>t.hidden=true,2200)}
+async function copiar(txt){try{await navigator.clipboard.writeText(txt);toast('Copiado');copyText=null}catch(e){copyText=txt;render();toast('Selecione e copie o texto abaixo')}}
+
+/* ---------- armazenamento ---------- */
+let docRef=null, timer=null, writing=false, again=false, lastSaved='';
+const LS='caronas-v1';
+function loadLocal(){try{const r=localStorage.getItem(LS);if(r)S=carregar(JSON.parse(r))}catch(e){}}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
+function salvar(){saveLocal();if(!docRef)return;clearTimeout(timer);timer=setTimeout(flush,500)}
+async function flush(){if(writing){again=true;return}writing=true;const js=JSON.stringify(S);try{await docRef.set(JSON.parse(js));lastSaved=js;setSync(true)}catch(e){setSync(false,'Não salvou na nuvem: '+(e.message||e.code))}writing=false;if(again){again=false;flush()}}
+function setSync(ok,msg){document.getElementById('sync').textContent=msg||'Salvo neste celular'}
+async function iniciar(){
+  loadLocal();render();setSync(false,'Salvo neste celular');
+  try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+  if('serviceWorker' in navigator&&location.protocol==='https:'){try{navigator.serviceWorker.register('sw.js')}catch(e){}}
+  return;
+  let db=null;
+  if(!db){setSync(false);return}
+  docRef=db.doc('caronas/estado');
+  try{
+    const snap=await docRef.get();
+    if(snap.exists){S=carregar(snap.data());lastSaved=JSON.stringify(S);saveLocal();render()}
+    else if(S.pessoas.length){await flush()}
+    setSync(true);
+    docRef.onSnapshot(s=>{if(!s.exists||writing)return;const js=JSON.stringify(s.data());if(js===lastSaved||js===JSON.stringify(S))return;if(document.activeElement&&document.activeElement.matches('input,textarea'))return;S=carregar(s.data());lastSaved=js;saveLocal();render()},()=>setSync(false));
+  }catch(e){docRef=null;setSync(false)}
+}
+
+/* ---------- WhatsApp ---------- */
+const DIA_IDX={segunda:0,terca:1,quarta:2,quinta:3,sexta:4};
+function lerWhats(txt){
+  const out=[];let nomes=[],ida=null,volta=null;
+  for(let raw of txt.split(/\r?\n/)){
+    const l=raw.trim();if(!l)continue;const n=norm(l);
+    if(/^\d{1,2}:\d{2}/.test(n)||n==='hoje')continue;
+    if(n==='ida'){ida=nomes;nomes=[];continue}
+    if(n==='volta'){volta=nomes;nomes=[];continue}
+    const d=Object.keys(DIA_IDX).find(k=>n.startsWith(k));
+    if(d&&n.split(/\s+/).length<=2){out.push({idx:DIA_IDX[d],ida:ida||[],volta:volta||[]});ida=volta=null;nomes=[];continue}
+    nomes=nomes.concat(l.split(/[\s,;]+/).filter(Boolean));
+  }
+  return out;
+}
+function textoSemana(){
+  return semanaKeys(semana).map((k,i)=>{const v=S.viagens[k];if(!v||v.off)return null;
+    return [v.ida.map(nome).join(' '),'Ida',v.volta.map(nome).join(' '),'Volta',DIAS[i]].join('\n')}).filter(Boolean).join('\n\n');
+}
+function msgCobranca(p){
+  const e=extrato(p.id);const fimSem=iso(addDays(mondayOf(new Date()),4));
+  const lim=p.modo==='semana'?(fimSem>HOJE?fimSem:HOJE):HOJE;
+  const ds=e.dias.filter(d=>d.k<=lim&&d.valor-d.pago>0.009);
+  const pn=p.nome.split(' ')[0];
+  if(!ds.length)return `Oi, ${pn}! Suas caronas estão todas pagas até agora. Obrigado!`;
+  const tot=ds.reduce((a,d)=>a+d.valor-d.pago,0);
+  return `Oi, ${pn}! Segue o resumo das caronas em aberto:\n`+ds.map(d=>`${DIAS_CURTO[fromIso(d.k).getDay()]} ${ddmm(fromIso(d.k))}: ${d.tipo} — ${brl(d.valor-d.pago)}${d.pago>0.009?' (restante)':''}`).join('\n')+`\nTotal: ${brl(tot)}\nObrigado!`;
+}
+
+function minutos(h){const m=String(h||'').match(/(\d{1,2})\s*[h:]\s*(\d{0,2})/i);return m?(+m[1])*60+(+(m[2]||0)):null}
+function msgVagas(){
+  const c=S.config,cap=c.vagas,agora=new Date(),nowMin=agora.getHours()*60+agora.getMinutes(),amanha=iso(addDays(agora,1));
+  const blocos=[];
+  semanaKeys(semana).forEach((k,i)=>{if(k<HOJE)return;const v=S.viagens[k];if(v&&v.off)return;
+    const linhas=[];
+    [['ida','Piumhi','Capitólio',c.horaIda],['volta','Capitólio','Piumhi',c.horaVolta]].forEach(([leg,de,para,hora])=>{
+      const livres=cap-((v&&v[leg])||[]).length;if(livres<=0)return;
+      if(k===HOJE){const mm=minutos(hora);if(mm!==null&&mm<=nowMin)return}
+      linhas.push(`📍 ${de} ➡️ ${para}: ${hora}`+(c.mostrarVagas?` (${livres} vaga${livres>1?'s':''})`:''))});
+    if(linhas.length)blocos.push(`${DIAS[i].toUpperCase()} ${ddmm(fromIso(k))}`+(k===HOJE?'  HOJE':k===amanha?'  AMANHÃ':'')+'\n'+linhas.join('\n'))});
+  if(!blocos.length)return '';
+  return 'OFEREÇO CARONA\n'+blocos.join('\n\n')+(c.rodape?'\n'+c.rodape:'');
+}
+
+/* ---------- telas ---------- */
+function render(){
+  document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===tab));
+  render._ext={};const v=document.getElementById('view');
+  const focusId=document.activeElement?.id;
+  v.innerHTML=tab==='semana'?telaSemana():tab==='pessoas'?telaPessoas():tab==='gasolina'?telaGasolina():telaAjustes();
+  if(focusId){const el=document.getElementById(focusId);if(el)el.focus()}
+}
+
+function pagoNoDia(pid,k){const c=(render._ext||(render._ext={}));if(!c[pid])c[pid]=extrato(pid);const d=c[pid].dias.find(x=>x.k===k);return d&&d.valor-d.pago<=0.009}
+function telaSemana(){
+  const ks=semanaKeys(semana);const c=S.config;const cd=custoDia();
+  let rec=0,custo=0;ks.forEach(k=>{const v=S.viagens[k];rec+=receitaDia(v);custo+=custoDiaK(k)});
+  const saldo=rec-custo;const pct=custo?Math.min(100,rec/custo*100):0;
+  let h=`<div class="days">
+  <div class="card weeknav"><button class="btn" data-act="sem" data-d="-7" aria-label="Semana anterior">‹</button>
+    <h2>${ddmm(semana)} a ${ddmm(addDays(semana,4))}</h2>
+    <button class="btn" data-act="sem" data-d="7" aria-label="Próxima semana">›</button></div>
+  <div class="card"><div class="stats">
+    <div class="stat"><div class="lbl">Caronas</div><div class="val">${brl(rec)}</div></div>
+    <div class="stat"><div class="lbl">Gasolina</div><div class="val">${brl(custo)}</div></div>
+    <div class="stat"><div class="lbl">Sobra</div><div class="val ${saldo>=0?'pos':'neg'}">${brl(saldo)}</div></div>
+    <div class="stat"><div class="lbl">Cobre</div><div class="val">${custo?Math.round(rec/custo*100):0}%</div></div>
+  </div><div class="bar"><i style="width:${pct}%"></i></div>
+  <p class="note calc" style="margin:8px 0 0">Gasolina por dia: ${2*c.kmTrecho} km ÷ ${fmtKml(mediaConsumo().media)}${mediaConsumo().n?' (média real)':''} × ${brl(precoEm(HOJE))}${S.abastecimentos.length?' (último abastecimento)':''} ≈ <b>${brl(cd)}</b>. Dias com média anotada usam o número do dia.</p></div>`;
+  const mv=msgVagas();
+  h+=`<details class="tool" id="vagasbox" ${vagasOpen?'open':''}><summary>Gerar mensagem de vagas para o grupo</summary>
+    <p class="note" style="margin:0 0 8px">Só entram os trechos com vaga livre, de hoje em diante nesta semana. Trechos de hoje que já passaram do horário ficam de fora.</p>
+    <div class="row"><label class="chk"><input type="checkbox" data-act="mvagas" ${c.mostrarVagas?'checked':''}> Mostrar quantas vagas</label><span class="spacer"></span><button class="btn pri" data-act="copvagas" ${mv?'':'disabled'}>Copiar mensagem</button></div>
+    ${mv?`<textarea readonly class="copybox" id="vagastxt" style="min-height:190px">${esc(mv)}</textarea>`:`<p class="empty" style="padding:12px 0">Sem vagas livres no resto desta semana. Use a seta › para ver a próxima.</p>`}
+    <p class="note" style="margin:6px 0 0">Horários e texto final ficam em Ajustes.</p></details>`;
+  if(!S.pessoas.length)h+=`<div class="card empty">Nenhum passageiro cadastrado ainda.<br>Cole sua mensagem do WhatsApp abaixo ou cadastre em <b>Pessoas e cobranças</b>.</div>`;
+  ks.forEach((k,i)=>h+=cartaoDia(k,i));
+  h+=`<details class="tool" ${importPreview?'open':''}><summary>Colar marcação do WhatsApp</summary>
+    <p class="note" style="margin:0 0 8px">Cole no mesmo formato que você usa: nomes, "Ida", nomes, "Volta", dia. Vai para a semana de ${ddmm(semana)}. Nomes novos viram passageiros novos.</p>
+    <textarea id="wtxt" placeholder="Reynaldo Emily&#10;Ida&#10;Emily Rafaela Edvane Joao&#10;Volta&#10;Segunda"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" data-act="ler">Ler mensagem</button>${importPreview?`<button class="btn pri" data-act="aplicar">Aplicar nesta semana</button><button class="btn" data-act="cancelar">Cancelar</button>`:''}</div>
+    ${importPreview?prevImport():''}</details>
+  <details class="tool"><summary>Copiar semana para o WhatsApp</summary>
+    <div class="row"><button class="btn" data-act="copsem">Copiar texto</button></div>
+    <textarea readonly class="copybox" id="semtxt">${esc(textoSemana())}</textarea></details>`;
+  if(copyText&&tab==='semana')h+=`<textarea readonly class="copybox" id="cpbox">${esc(copyText)}</textarea>`;
+  return h+'</div>';
+}
+function prevImport(){
+  return `<div class="preview">`+importPreview.map(d=>{const over=d.ida.length>S.config.vagas||d.volta.length>S.config.vagas;
+    return `<div><b>${DIAS[d.idx]}</b> — ida: ${esc(d.ida.join(', ')||'ninguém')} · volta: ${esc(d.volta.join(', ')||'ninguém')} ${over?'<span class="pill full">passa de '+S.config.vagas+'</span>':''}</div>`}).join('')+
+    (()=>{const novos=[...new Set(importPreview.flatMap(d=>[...d.ida,...d.volta]))].filter(n=>!findByName(n));return novos.length?`<div class="note">Novos passageiros: ${esc(novos.join(', '))}</div>`:''})()+`</div>`;
+}
+function cartaoDia(k,i){
+  const v=S.viagens[k]||{ida:[],volta:[],obs:'',off:false};const d=fromIso(k);const cap=S.config.vagas;
+  const rec=receitaDia(v),cd=custoDiaK(k);
+  const legs=['ida','volta'].map(leg=>{
+    const ids=v[leg]||[];const full=ids.length>=cap;
+    let seats=ids.map((id,j)=>`<div class="seat taken ${j>=cap?'over':''}"><span title="${esc(nome(id))}">${pagoNoDia(id,k)?'<b class="tick" title="pago">✓</b> ':''}${esc(nome(id))}</span><button data-act="rm" data-k="${k}" data-leg="${leg}" data-id="${id}" aria-label="Tirar ${esc(nome(id))}">×</button></div>`).join('');
+    const livres=Math.max(0,cap-ids.length);
+    for(let s=0;s<livres;s++){
+      if(s===0&&novaPessoaSlot===k+leg){seats+=`<div class="seat"><input type="text" id="np-${k}-${leg}" placeholder="Nome e Enter" data-k="${k}" data-leg="${leg}"></div>`;continue}
+      if(s===0){const opts=S.pessoas.filter(p=>!ids.includes(p.id)).sort((a,b)=>(b.fixo-a.fixo)||a.nome.localeCompare(b.nome));
+        seats+=`<div class="seat"><select id="sel-${k}-${leg}" data-act="add" data-k="${k}" data-leg="${leg}" aria-label="Adicionar na ${leg} de ${DIAS[i]}"><option value="">+ vaga</option>${opts.map(p=>`<option value="${p.id}">${esc(p.nome)}</option>`).join('')}<option value="__novo">Nova pessoa…</option></select></div>`}
+      else seats+=`<div class="seat" style="border:1px dashed var(--line)"></div>`;
+    }
+    const st=ids.length>cap?`<small style="color:var(--bad)">${ids.length}/${cap}!</small>`:`<small>${ids.length}/${cap}</small>`;
+    return `<div class="leg"><div class="lname">${leg==='ida'?'Ida':'Volta'}${st}</div><div class="seats">${seats}</div></div>`;
+  }).join('');
+  const lot=(v.ida.length>=cap?'<span class="pill full">ida lotada</span>':'')+(v.volta.length>=cap?'<span class="pill full">volta lotada</span>':'');
+  return `<section class="day ${k===HOJE?'today':''} ${v.off?'off':''}"><div class="dayhead"><h3>${DIAS[i]}</h3><span class="date">${ddmm(d)}</span>${k===HOJE?'<span class="pill hoje">hoje</span>':''}${v.off?'<span class="pill">não fui</span>':lot}<span class="spacer"></span>
+    <label class="chk"><input type="checkbox" data-act="off" data-k="${k}" ${v.off?'checked':''}> Não fui</label></div>
+    ${v.off?'':legs}
+    ${v.off?'':`<div class="cons"><span class="note">Média do painel</span><label>ida <input type="number" step="0.1" min="0" id="ci-${k}" data-act="cons" data-k="${k}" data-f="consIda" value="${v.consIda||''}" placeholder="${mediaConsumo().media.toFixed(1)}"> km/l</label><label>volta <input type="number" step="0.1" min="0" id="cv-${k}" data-act="cons" data-k="${k}" data-f="consVolta" value="${v.consVolta||''}" placeholder="${mediaConsumo().media.toFixed(1)}"> km/l</label></div>`}
+    <div class="dayfoot"><span>Entrou ${brl(rec)} · gasolina ${brl(v.off?0:cd)}</span>
+    <input type="text" id="obs-${k}" data-act="obs" data-k="${k}" value="${esc(v.obs||'')}" placeholder="Observação (ex.: Ithalo paga sexta)"></div></section>`;
+}
+
+function telaPessoas(){
+  const ks=semanaKeys(semana);
+  const lista=S.pessoas.map(p=>{const e=extrato(p.id);let sem=0;ks.forEach(k=>sem+=cobranca(S.viagens[k],p.id));return {p,e,sem}}).sort((a,b)=>b.e.aberto-a.e.aberto||(b.p.fixo-a.p.fixo)||a.p.nome.localeCompare(b.p.nome));
+  const totAb=lista.reduce((a,x)=>a+x.e.aberto,0);
+  const dow=new Date().getDay();
+  let h=`<div class="people"><div class="card"><div class="stats" style="grid-template-columns:repeat(2,1fr)">
+    <div class="stat"><div class="lbl">Em aberto até hoje</div><div class="val ${totAb>0.01?'neg':'pos'}">${brl(totAb)}</div></div>
+    <div class="stat"><div class="lbl">Semana ${ddmm(semana)}</div><div class="val">${brl(lista.reduce((a,x)=>a+x.sem,0))}</div></div></div>
+    <p class="note" style="margin:8px 0 0">Cada dia de carona tem sua situação: pago, parcial, em aberto ou a vencer. Ao receber, marque quais dias a pessoa está pagando, inclusive dias que ainda vão acontecer.</p></div>
+  <details class="tool" ${editOpen==='novo'?'open':''}><summary>Cadastrar passageiro</summary>${formPessoa(null)}</details>`;
+  if(!lista.length)h+=`<div class="card empty">Ninguém cadastrado ainda.</div>`;
+  lista.forEach(({p,e,sem})=>{
+    let status='';
+    if(e.aberto>0.01)status=p.modo==='semana'&&dow>=1&&dow<5?'<span class="pill warn">cobrar na sexta</span>':'<span class="pill full">cobrar já</span>';
+    else status='<span class="pill ok">em dia</span>';
+    if(e.adiantado>0.01)status+='<span class="pill ok">pagou adiantado</span>';
+    if(e.credito>0.01)status+=`<span class="pill ok">crédito ${brl(e.credito)}</span>`;
+    const pags=S.pagamentos.filter(x=>x.pid===p.id).sort((a,b)=>b.data.localeCompare(a.data));
+    const abertos=e.dias.filter(d=>d.valor-d.pago>0.009);
+    h+=`<div class="person"><div class="ph"><h3>${esc(p.nome)}</h3><span class="pill">${p.modo==='semana'?'paga por semana':'paga por dia'}</span><span class="pill" title="ida e volta / um trecho">${esc(rotuloTarifa(p))}</span>${p.fixo?'<span class="pill">fixo</span>':'<span class="pill">avulso</span>'}${status}</div>
+      <div class="nums"><div>Esta semana<b>${brl(sem)}</b></div><div>Em aberto<b class="${e.aberto>0.01?'neg':'pos'}">${brl(e.aberto)}</b></div><div>A vencer<b>${brl(e.aVencer)}</b></div></div>
+      <div class="row"><button class="btn sm pri" data-act="payopen" data-id="${p.id}">Recebi</button><button class="btn sm" data-act="cobrar" data-id="${p.id}">Copiar cobrança</button><button class="btn sm" data-act="editopen" data-id="${p.id}">Editar</button></div>
+      ${payOpen===p.id?formPagamento(p,abertos):''}
+      ${editOpen===p.id||editOpen==='del-'+p.id?formPessoa(p):''}
+      ${e.dias.length?`<details ${extOpen===p.id?'open':''} data-ext="${p.id}"><summary class="note" style="cursor:pointer">Dias de carona (${e.dias.length})</summary><div class="ext">${e.dias.slice().reverse().map(d=>`<div class="erow"><span>${DIAS_CURTO[fromIso(d.k).getDay()]} ${ddmm(fromIso(d.k))}</span><span class="note">${d.tipo}</span><span class="calc">${brl(d.valor)}</span>${pillDia(d)}</div>`).join('')}</div></details>`:''}
+      ${pags.length?`<details><summary class="note" style="cursor:pointer">Pagamentos (${pags.length})</summary><div class="hist">${pags.map(x=>`<div class="row"><span>${ddmm(fromIso(x.data))} · ${brl(x.valor)}${x.dias&&x.dias.length?' · '+x.dias.map(k=>ddmm(fromIso(k))).join(', '):' · sem dia marcado'}${x.obs?' · '+esc(x.obs):''}</span><button class="btn sm" data-act="paydel" data-pay="${x.id}">apagar</button></div>`).join('')}</div></details>`:''}
+      ${copyText&&copyText.startsWith('Oi, '+p.nome.split(' ')[0])?`<textarea readonly class="copybox">${esc(copyText)}</textarea>`:''}
+    </div>`;
+  });
+  return h+'</div>';
+}
+function pillDia(d){const r=d.valor-d.pago;
+  if(r<=0.009)return '<span class="pill ok">pago</span>';
+  if(d.pago>0.009)return `<span class="pill warn">falta ${brl(r)}</span>`;
+  return d.k<=HOJE?'<span class="pill full">em aberto</span>':'<span class="pill">a vencer</span>'}
+function formPagamento(p,abertos){
+  const sug=abertos.filter(d=>d.k<=HOJE||p.modo==='semana'&&d.k<=iso(addDays(mondayOf(new Date()),4)));
+  const tot=sug.reduce((a,d)=>a+d.valor-d.pago,0);
+  return `<div class="payform"><div class="note" style="font-weight:600">Quais dias ${esc(p.nome.split(' ')[0])} está pagando?</div>
+    ${abertos.length?`<div class="paydays">${abertos.map(d=>`<label class="chk pd"><input type="checkbox" data-act="pdia" data-id="${p.id}" value="${d.k}" data-v="${(d.valor-d.pago).toFixed(2)}" ${sug.includes(d)?'checked':''}> ${DIAS_CURTO[fromIso(d.k).getDay()]} ${ddmm(fromIso(d.k))} · ${brl(d.valor-d.pago)}${d.k>HOJE?' <em>(adiantado)</em>':''}</label>`).join('')}</div>`:'<div class="note">Nenhum dia em aberto. O valor entra como crédito para os próximos dias.</div>'}
+    <div class="row"><label class="note">Valor recebido <input type="number" id="pv-${p.id}" step="0.01" min="0" value="${tot.toFixed(2)}" style="width:110px"></label><input type="date" id="pd-${p.id}" value="${HOJE}" aria-label="Data do pagamento"><input type="text" id="po-${p.id}" placeholder="Pix, dinheiro…" style="flex:1;min-width:120px"></div>
+    <div class="note">Se o valor for menor que os dias marcados, os dias mais antigos são quitados primeiro. Se não marcar nenhum dia, o valor quita os dias em aberto mais antigos.</div>
+    <div class="row"><button class="btn sm pri" data-act="paysave" data-id="${p.id}">Salvar pagamento</button><button class="btn sm" data-act="payclose">Cancelar</button></div></div>`;
+}
+function formPessoa(p){
+  const id=p?p.id:'novo';
+  return `<div class="form" style="margin-top:6px"><label>Nome<input type="text" id="fn-${id}" value="${esc(p?.nome||'')}"></label>
+    <label>Como paga<select id="fm-${id}"><option value="dia" ${p?.modo!=='semana'?'selected':''}>Por dia</option><option value="semana" ${p?.modo==='semana'?'selected':''}>Por semana</option></select></label>
+    <label>Valor cobrado<select id="ft-${id}" data-act="ftsel" data-id="${id}">${S.tarifas.map(t=>`<option value="${t.id}" ${(p?p.tarifa:S.tarifas[0].id)===t.id?'selected':''}>${esc(t.nome)} (${brl(t.valorDia)} / ${brl(t.valorTrecho)})</option>`).join('')}<option value="proprio" ${p?.tarifa==='proprio'?'selected':''}>Valor próprio desta pessoa…</option></select></label>
+    <label>Tipo<select id="ff-${id}"><option value="1" ${p?.fixo!==false?'selected':''}>Carona fixa</option><option value="0" ${p?.fixo===false?'selected':''}>Avulsa</option></select></label></div>
+    <div class="form" id="fp-${id}" style="margin-top:8px" ${p?.tarifa==='proprio'?'':'hidden'}><label>Ida e volta (R$)<input type="number" step="0.5" min="0" id="fd-${id}" value="${p?.valorDia??S.tarifas[0].valorDia}"></label><label>Só um trecho (R$)<input type="number" step="0.5" min="0" id="fv-${id}" value="${p?.valorTrecho??S.tarifas[0].valorTrecho}"></label></div>
+    <div class="row" style="margin-top:8px"><button class="btn sm pri" data-act="psave" data-id="${id}">${p?'Salvar':'Cadastrar'}</button>${p?`<button class="btn sm" data-act="editclose">Fechar</button><button class="btn sm" data-act="pdel" data-id="${id}" style="color:var(--bad)">Excluir passageiro</button>`:''}</div>
+    ${p&&editOpen==='del-'+p.id?`<div class="row" style="margin-top:6px"><span class="note">Excluir ${esc(p.nome)} tira das caronas e apaga os pagamentos.</span><button class="btn sm" data-act="pdelok" data-id="${id}" style="color:var(--bad)">Confirmar exclusão</button></div>`:''}`;
+}
+
+function telaAjustes(){
+  const c=S.config;
+  return `<div class="days"><div class="card"><h2 style="font-size:1.2rem;margin-bottom:10px">Carro e gasolina</h2><div class="form">
+    <label>Preço padrão do litro (R$)<input type="number" step="0.01" id="cf-gasolina" value="${c.gasolina}"></label>
+    <label>Consumo padrão (km/l)<input type="number" step="0.1" id="cf-consumo" value="${c.consumo}"></label>
+    <label>Km por trecho<input type="number" step="1" id="cf-kmTrecho" value="${c.kmTrecho}"></label>
+    <label>Vagas no carro<input type="number" step="1" min="1" id="cf-vagas" value="${c.vagas}"></label>
+    <label>Horário da ida<input type="text" id="cf-horaIda" value="${esc(c.horaIda)}" placeholder="07h30"></label>
+    <label>Horário da volta<input type="text" id="cf-horaVolta" value="${esc(c.horaVolta)}" placeholder="17h00"></label></div>
+    <label style="display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted);font-weight:600;margin-top:10px">Texto final da mensagem de vagas<textarea id="cf-rodape" style="min-height:70px">${esc(c.rodape)}</textarea></label>
+    <div class="row" style="margin-top:10px"><button class="btn pri" data-act="cfsave">Salvar ajustes</button></div>
+    <p class="note">O preço e o consumo padrão só são usados enquanto não houver abastecimento ou média anotada.</p><p class="note calc">Hoje as contas usam: ${2*c.kmTrecho} km/dia, ${(2*c.kmTrecho/mediaConsumo().media).toFixed(1).replace('.',',')} l/dia, ${brl(custoDia())} por dia, ${brl(custoDia()*5)} por semana. Na tabela ${esc(S.tarifas[0].nome)}, você empata a gasolina com ${(custoDia()/(S.tarifas[0].valorDia||1)).toFixed(1).replace('.',',')} passageiro(s) ida e volta por dia.</p></div>
+  <div class="card"><h2 style="font-size:1.2rem;margin-bottom:4px">Tabelas de valores</h2>
+    <p class="note" style="margin:0 0 10px">Cada passageiro usa uma destas tabelas (ou um valor próprio, definido no cadastro dele). A primeira é a usada para quem é cadastrado pelo WhatsApp.</p>
+    <div class="tarifas">${S.tarifas.map((t,i)=>{const uso=S.pessoas.filter(p=>p.tarifa===t.id).length;return `<div class="trow"><input type="text" id="tn-${t.id}" value="${esc(t.nome)}" aria-label="Nome da tabela"><label>Ida e volta<input type="number" step="0.5" min="0" id="td-${t.id}" value="${t.valorDia}"></label><label>Um trecho<input type="number" step="0.5" min="0" id="tv-${t.id}" value="${t.valorTrecho}"></label><span class="note">${uso} pessoa${uso===1?'':'s'}</span><div class="row"><button class="btn sm pri" data-act="tsave" data-id="${t.id}">Salvar</button>${i>0?`<button class="btn sm" data-act="tdel" data-id="${t.id}" style="color:var(--bad)">Excluir</button>`:''}</div></div>`}).join('')}
+    <div class="trow novo"><input type="text" id="tn-novo" placeholder="Nova tabela (ex.: Estudante)" aria-label="Nome da nova tabela"><label>Ida e volta<input type="number" step="0.5" min="0" id="td-novo" placeholder="12"></label><label>Um trecho<input type="number" step="0.5" min="0" id="tv-novo" placeholder="6"></label><span></span><div class="row"><button class="btn sm" data-act="tsave" data-id="novo">Adicionar</button></div></div></div></div>
+  <div class="card"><h2 style="font-size:1.2rem;margin-bottom:6px">Cópia de segurança</h2>
+    <p class="note" style="margin:0 0 8px">Os dados ficam salvos no app. Se quiser uma cópia, copie o texto abaixo e guarde. Para restaurar, cole e clique em Restaurar.</p>
+    <textarea id="bk">${esc(JSON.stringify(S))}</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" data-act="bkcopy">Copiar</button><button class="btn" data-act="bkload">Restaurar do texto</button></div>
+    <div class="row" style="margin-top:8px"><button class="btn pri" data-act="bkfile">Baixar backup (.xml)</button><label class="btn" for="bkup">Restaurar de arquivo</label><input type="file" id="bkup" accept=".xml,.json,application/xml,text/xml,application/json" hidden></div>
+    <p class="note">Os dados ficam só neste celular. Se limpar os dados do navegador ou trocar de celular, eles somem. Baixe o backup .xml de vez em quando e guarde no Drive ou no WhatsApp. No celular novo, instale o app e use Restaurar de arquivo.</p></div></div>`;
+}
+
+function telaGasolina(){
+  const [y,m]=mes.split('-').map(Number);const ini=mes+'-01',fim=iso(new Date(y,m,0));
+  const nomeMes=new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+  const abs=S.abastecimentos.filter(a=>a.data>=ini&&a.data<=fim).sort((a,b)=>b.data.localeCompare(a.data));
+  const gasto=abs.reduce((s,a)=>s+a.valor,0),litros=abs.reduce((s,a)=>s+(a.litros||0),0);
+  let gerado=0,custoEst=0,diasRodados=0;Object.keys(S.viagens).forEach(k=>{if(k<ini||k>fim)return;const v=S.viagens[k];if(v.off)return;gerado+=receitaDia(v);custoEst+=custoDiaK(k);diasRodados++});
+  const recebido=S.pagamentos.filter(p=>p.data>=ini&&p.data<=fim).reduce((s,p)=>s+p.valor,0);
+  const ci=mediaConsumo('consIda'),cv=mediaConsumo('consVolta'),cg=mediaConsumo();
+  const ult=S.abastecimentos.slice().sort((a,b)=>b.data.localeCompare(a.data))[0];
+  return `<div class="days">
+  <div class="card"><h2 style="font-size:1.2rem;margin-bottom:8px">Abasteci</h2><div class="form">
+    <label>Data<input type="date" id="ab-data" value="${HOJE}"></label>
+    <label>Valor pago (R$)<input type="number" step="0.01" min="0" id="ab-valor" data-act="abcalc" placeholder="150,00"></label>
+    <label>Preço do litro (R$)<input type="number" step="0.01" min="0" id="ab-preco" data-act="abcalc" value="${ult?ult.preco:S.config.gasolina}"></label>
+    <label>Km no painel (opcional)<input type="number" step="1" min="0" id="ab-km" placeholder="hodômetro"></label></div>
+    <div class="row" style="margin-top:10px"><span class="note calc" id="ab-litros">Informe o valor pago</span><span class="spacer"></span><button class="btn pri" data-act="absave">Salvar abastecimento</button></div></div>
+
+  <div class="card weeknav"><button class="btn" data-act="mes" data-d="-1" aria-label="Mês anterior">‹</button><h2 style="text-transform:capitalize">${nomeMes}</h2><button class="btn" data-act="mes" data-d="1" aria-label="Próximo mês">›</button></div>
+  <div class="card"><div class="stats">
+    <div class="stat"><div class="lbl">Abasteci</div><div class="val">${brl(gasto)}</div></div>
+    <div class="stat"><div class="lbl">Caronas do mês</div><div class="val">${brl(gerado)}</div></div>
+    <div class="stat"><div class="lbl">Já recebi</div><div class="val">${brl(recebido)}</div></div>
+    <div class="stat"><div class="lbl">Caronas − abastecido</div><div class="val ${gerado-gasto>=0?'pos':'neg'}">${brl(gerado-gasto)}</div></div></div>
+    <p class="note calc" style="margin:8px 0 0">${litros?`${litros.toFixed(1).replace('.',',')} litros, média ${brl(gasto/litros)} o litro. `:''}Gasto estimado pelos ${diasRodados} dia(s) rodados: ${brl(custoEst)}. O valor abastecido no mês nem sempre bate com o gasto, porque o tanque pode ficar cheio para o mês seguinte.</p></div>
+
+  <div class="card"><h2 style="font-size:1.2rem;margin-bottom:8px">Consumo real do Polo</h2><div class="stats" style="grid-template-columns:repeat(3,1fr)">
+    <div class="stat"><div class="lbl">Ida</div><div class="val">${ci.n?fmtKml(ci.media):'—'}</div><div class="note">${ci.n} anotação(ões)</div></div>
+    <div class="stat"><div class="lbl">Volta</div><div class="val">${cv.n?fmtKml(cv.media):'—'}</div><div class="note">${cv.n} anotação(ões)</div></div>
+    <div class="stat"><div class="lbl">Geral</div><div class="val">${cg.n?fmtKml(cg.media):'—'}</div><div class="note">${cg.n?'usado nas contas':'usando o padrão '+fmtKml(S.config.consumo)}</div></div></div>
+    <p class="note" style="margin:8px 0 0">Anote a média do painel em cada dia, na aba Semana (campos "km/l ida" e "km/l volta"). Dias sem anotação usam a média das últimas anotações.</p></div>
+
+  <div class="card"><h2 style="font-size:1.2rem;margin-bottom:8px">Abastecimentos</h2>
+    ${abs.length?`<div class="ext">${abs.map(a=>`<div class="erow ab"><span>${ddmm(fromIso(a.data))}</span><span class="calc">${brl(a.valor)} · ${(a.litros||0).toFixed(1).replace('.',',')} l · ${brl(a.preco)}/l${a.km?' · '+a.km.toLocaleString('pt-BR')+' km':''}</span><button class="btn sm" data-act="abdel" data-id="${a.id}">apagar</button></div>`).join('')}</div>`:'<p class="empty" style="padding:8px 0">Nenhum abastecimento neste mês.</p>'}</div></div>`;
+}
+
+/* ---------- backup XML ---------- */
+function xa(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/\n/g,'&#10;')}
+function attrs(o,keys){return keys.filter(k=>o[k]!==undefined&&o[k]!==null&&o[k]!=='').map(k=>` ${k}="${xa(o[k])}"`).join('')}
+function paraXML(){
+  const c=S.config,L=[];
+  L.push('<?xml version="1.0" encoding="UTF-8"?>');
+  L.push(`<caronas versao="1" exportado="${new Date().toISOString()}">`);
+  L.push(`  <config${attrs(c,['kmTrecho','consumo','gasolina','vagas','horaIda','horaVolta','mostrarVagas'])}>`);
+  L.push(`    <rodape>${xa(c.rodape)}</rodape>`);
+  L.push('  </config>');
+  L.push('  <tarifas>');S.tarifas.forEach(t=>L.push(`    <tarifa${attrs(t,['id','nome','valorDia','valorTrecho'])}/>`));L.push('  </tarifas>');
+  L.push('  <pessoas>');S.pessoas.forEach(p=>L.push(`    <pessoa${attrs(p,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho'])}/>`));L.push('  </pessoas>');
+  L.push('  <viagens>');Object.keys(S.viagens).sort().forEach(k=>{const v=S.viagens[k];
+    L.push(`    <dia data="${k}"${v.off?' off="true"':''}${attrs(v,['consIda','consVolta'])}>`);
+    ['ida','volta'].forEach(leg=>L.push(`      <${leg}>${(v[leg]||[]).map(id=>`<p id="${xa(id)}"/>`).join('')}</${leg}>`));
+    if(v.obs)L.push(`      <obs>${xa(v.obs)}</obs>`);
+    L.push('    </dia>')});L.push('  </viagens>');
+  L.push('  <pagamentos>');S.pagamentos.forEach(x=>{L.push(`    <pagamento${attrs(x,['id','pid','data','valor','obs'])}>${(x.dias||[]).map(k=>`<d>${k}</d>`).join('')}</pagamento>`)});L.push('  </pagamentos>');
+  L.push('  <abastecimentos>');S.abastecimentos.forEach(a=>L.push(`    <abastecimento${attrs(a,['id','data','valor','preco','litros','km'])}/>`));L.push('  </abastecimentos>');
+  L.push('</caronas>');
+  return L.join('\n');
+}
+function deXML(txt){
+  const doc=new DOMParser().parseFromString(txt,'application/xml');
+  if(doc.querySelector('parsererror')||!doc.documentElement||doc.documentElement.nodeName!=='caronas')throw new Error('xml');
+  const num=v=>v===null||v===''?undefined:(isNaN(+v)?v:+v);
+  const at=(el,keys,nums)=>{const o={};keys.forEach(k=>{const v=el.getAttribute(k);if(v===null)return;o[k]=nums.includes(k)?num(v):v==='true'?true:v==='false'?false:v});return o};
+  const r=doc.documentElement,o={};
+  const cf=r.querySelector('config');
+  o.config=cf?at(cf,['kmTrecho','consumo','gasolina','vagas','horaIda','horaVolta','mostrarVagas'],['kmTrecho','consumo','gasolina','vagas']):{};
+  const rod=cf&&cf.querySelector('rodape');if(rod)o.config.rodape=rod.textContent;
+  o.tarifas=[...r.querySelectorAll('tarifas > tarifa')].map(e=>at(e,['id','nome','valorDia','valorTrecho'],['valorDia','valorTrecho']));
+  o.pessoas=[...r.querySelectorAll('pessoas > pessoa')].map(e=>at(e,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho'],['valorDia','valorTrecho']));
+  o.viagens={};r.querySelectorAll('viagens > dia').forEach(e=>{const v={ida:[...e.querySelectorAll('ida > p')].map(p=>p.getAttribute('id')),volta:[...e.querySelectorAll('volta > p')].map(p=>p.getAttribute('id')),obs:e.querySelector('obs')?.textContent||'',off:e.getAttribute('off')==='true'};
+    ['consIda','consVolta'].forEach(f=>{const n=num(e.getAttribute(f));if(n>0)v[f]=n});o.viagens[e.getAttribute('data')]=v});
+  o.pagamentos=[...r.querySelectorAll('pagamentos > pagamento')].map(e=>Object.assign(at(e,['id','pid','data','valor','obs'],['valor']),{dias:[...e.querySelectorAll('d')].map(d=>d.textContent)}));
+  o.abastecimentos=[...r.querySelectorAll('abastecimentos > abastecimento')].map(e=>at(e,['id','data','valor','preco','litros','km'],['valor','preco','litros','km']));
+  return o;
+}
+function lerBackup(txt){txt=String(txt).trim();const o=txt.startsWith('<')?deXML(txt):JSON.parse(txt);if(!o.config||!Array.isArray(o.pessoas))throw new Error('formato');return carregar(o)}
+
+/* ---------- ações ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-tab],[data-act]');if(!t||t.tagName==='SELECT'||t.type==='checkbox'||t.tagName==='INPUT')return;
+  if(t.dataset.tab){tab=t.dataset.tab;copyText=null;try{history.replaceState(null,'','#'+tab)}catch(e){}render();return}
+  const a=t.dataset.act,id=t.dataset.id;
+  if(a==='sem'){semana=addDays(semana,+t.dataset.d);importPreview=null;copyText=null;render()}
+  else if(a==='rm'){const v=dia(t.dataset.k);v[t.dataset.leg]=v[t.dataset.leg].filter(x=>x!==id);salvar();render()}
+  else if(a==='ler'){const txt=document.getElementById('wtxt').value;const r=lerWhats(txt);if(!r.length){toast('Não achei nenhum dia na mensagem');return}importPreview=r;render();document.getElementById('wtxt').value=txt}
+  else if(a==='cancelar'){importPreview=null;render()}
+  else if(a==='aplicar'){
+    const ks=semanaKeys(semana);
+    const pid=n=>{let p=findByName(n);if(!p){p={id:uid(),nome:n.charAt(0).toUpperCase()+n.slice(1),modo:'dia',fixo:true,tarifa:S.tarifas[0].id};S.pessoas.push(p)}return p.id};
+    importPreview.forEach(d=>{const v=dia(ks[d.idx]);v.ida=[...new Set(d.ida.map(pid))];v.volta=[...new Set(d.volta.map(pid))];v.off=false});
+    importPreview=null;salvar();render();toast('Semana atualizada')}
+  else if(a==='copsem')copiar(textoSemana());
+  else if(a==='copvagas'){const m=msgVagas();if(m)copiar(m)}
+  else if(a==='payopen'){payOpen=payOpen===id?null:id;render()}
+  else if(a==='payclose'){payOpen=null;render()}
+  else if(a==='paysave'){const v=parseFloat(String(document.getElementById('pv-'+id).value).replace(',','.'));if(!(v>0)){toast('Digite o valor recebido');return}
+    const dias=[...document.querySelectorAll(`input[data-act="pdia"][data-id="${id}"]:checked`)].map(c=>c.value);
+    S.pagamentos.push({id:uid(),pid:id,data:document.getElementById('pd-'+id).value||HOJE,valor:Math.round(v*100)/100,dias,obs:document.getElementById('po-'+id).value.trim()});payOpen=null;salvar();render();toast('Pagamento registrado')}
+  else if(a==='paydel'){S.pagamentos=S.pagamentos.filter(x=>x.id!==t.dataset.pay);salvar();render();toast('Pagamento apagado')}
+  else if(a==='cobrar'){copiar(msgCobranca(pessoa(id)))}
+  else if(a==='editopen'){editOpen=editOpen===id?null:id;render()}
+  else if(a==='editclose'){editOpen=null;render()}
+  else if(a==='psave'){const n=document.getElementById('fn-'+id).value.trim();if(!n){toast('Digite o nome');return}
+    const m=document.getElementById('fm-'+id).value,f=document.getElementById('ff-'+id).value==='1',tf=document.getElementById('ft-'+id).value;
+    const extra={tarifa:tf};if(tf==='proprio'){extra.valorDia=Math.max(0,parseFloat(document.getElementById('fd-'+id).value)||0);extra.valorTrecho=Math.max(0,parseFloat(document.getElementById('fv-'+id).value)||0)}
+    if(id==='novo'){if(findByName(n)&&norm(findByName(n).nome)===norm(n)){toast('Já existe alguém com esse nome');return}S.pessoas.push(Object.assign({id:uid(),nome:n,modo:m,fixo:f},extra));toast('Cadastrado')}
+    else Object.assign(pessoa(id),{nome:n,modo:m,fixo:f},extra);editOpen=null;salvar();render()}
+  else if(a==='pdel'){editOpen='del-'+id;render()}
+  else if(a==='pdelok'){S.pessoas=S.pessoas.filter(p=>p.id!==id);S.pagamentos=S.pagamentos.filter(x=>x.pid!==id);for(const k in S.viagens){const v=S.viagens[k];v.ida=v.ida.filter(x=>x!==id);v.volta=v.volta.filter(x=>x!==id)}editOpen=null;salvar();render();toast('Excluído')}
+  else if(a==='cfsave'){const c=S.config;['gasolina','consumo','kmTrecho','vagas'].forEach(f=>{const v=parseFloat(document.getElementById('cf-'+f).value);if(v>0)c[f]=f==='vagas'?Math.round(v):v});['horaIda','horaVolta','rodape'].forEach(f=>{c[f]=document.getElementById('cf-'+f).value.trim()});salvar();render();toast('Ajustes salvos')}
+  else if(a==='tsave'){const n=document.getElementById('tn-'+id).value.trim(),d=parseFloat(document.getElementById('td-'+id).value),v=parseFloat(document.getElementById('tv-'+id).value);
+    if(!n){toast('Dê um nome para a tabela');return}if(!(d>=0)||!(v>=0)){toast('Preencha os dois valores');return}
+    if(id==='novo')S.tarifas.push({id:uid(),nome:n,valorDia:d,valorTrecho:v});else Object.assign(S.tarifas.find(t=>t.id===id),{nome:n,valorDia:d,valorTrecho:v});
+    salvar();render();toast(id==='novo'?'Tabela criada':'Tabela salva')}
+  else if(a==='tdel'){S.pessoas.forEach(p=>{if(p.tarifa===id)p.tarifa=S.tarifas[0].id});S.tarifas=S.tarifas.filter(t=>t.id!==id);salvar();render();toast('Tabela excluída; quem usava foi para '+S.tarifas[0].nome)}
+  else if(a==='mes'){const [y,m]=mes.split('-').map(Number);const d=new Date(y,m-1+(+t.dataset.d),1);mes=iso(d).slice(0,7);render()}
+  else if(a==='absave'){const v=parseFloat(document.getElementById('ab-valor').value),pr=parseFloat(document.getElementById('ab-preco').value),km=parseFloat(document.getElementById('ab-km').value);
+    if(!(v>0)){toast('Digite quanto pagou');return}if(!(pr>0)){toast('Digite o preço do litro');return}
+    S.abastecimentos.push({id:uid(),data:document.getElementById('ab-data').value||HOJE,valor:Math.round(v*100)/100,preco:pr,litros:Math.round(v/pr*100)/100,km:km>0?Math.round(km):null});
+    mes=(document.getElementById('ab-data').value||HOJE).slice(0,7);salvar();render();toast('Abastecimento salvo')}
+  else if(a==='abdel'){S.abastecimentos=S.abastecimentos.filter(x=>x.id!==id);salvar();render();toast('Abastecimento apagado')}
+  else if(a==='bkfile'){const b=new Blob([paraXML()],{type:'application/xml'});const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download='caronas-backup-'+HOJE+'.xml';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);try{localStorage.setItem('caronas-ultimo-backup',HOJE)}catch(e){}}
+  else if(a==='bkcopy')copiar(JSON.stringify(S));
+  else if(a==='bkload'){try{S=lerBackup(document.getElementById('bk').value);salvar();render();toast('Dados restaurados')}catch(e){toast('Texto inválido')}}
+});
+// formPessoa usa editOpen para o form; ao pedir exclusão mantém o form aberto
+document.addEventListener('change',e=>{
+  const t=e.target;const a=t.dataset.act;
+  if(a==='add'){const v=t.value;if(!v)return;const k=t.dataset.k,leg=t.dataset.leg;
+    if(v==='__novo'){novaPessoaSlot=k+leg;render();document.getElementById(`np-${k}-${leg}`)?.focus();return}
+    const d=dia(k);if(d[leg].length>=S.config.vagas){toast('Carro cheio nesse trecho');render();return}
+    d[leg].push(v);salvar();render()}
+  else if(a==='ftsel'){const b=document.getElementById('fp-'+t.dataset.id);if(b)b.hidden=t.value!=='proprio'}
+  else if(a==='pdia'){const id=t.dataset.id;const tot=[...document.querySelectorAll(`input[data-act="pdia"][data-id="${id}"]:checked`)].reduce((s,c)=>s+parseFloat(c.dataset.v),0);const f=document.getElementById('pv-'+id);if(f)f.value=tot.toFixed(2)}
+  else if(a==='cons'){const n=parseFloat(t.value);const d=dia(t.dataset.k);if(n>0)d[t.dataset.f]=Math.round(n*10)/10;else delete d[t.dataset.f];salvar();render()}
+  else if(a==='mvagas'){S.config.mostrarVagas=t.checked;salvar();render()}
+  else if(a==='off'){dia(t.dataset.k).off=t.checked;salvar();render()}
+  else if(a==='obs'){dia(t.dataset.k).obs=t.value;salvar()}
+});
+document.addEventListener('input',e=>{if(e.target.dataset.act!=='abcalc')return;const v=parseFloat(document.getElementById('ab-valor').value),p=parseFloat(document.getElementById('ab-preco').value);document.getElementById('ab-litros').textContent=v>0&&p>0?`≈ ${(v/p).toFixed(2).replace('.',',')} litros (${(v/p*mediaConsumo().media).toFixed(0)} km, uns ${(v/p*mediaConsumo().media/(2*S.config.kmTrecho)).toFixed(1).replace('.',',')} dias de ida e volta)`:'Informe o valor pago'});
+document.addEventListener('change',e=>{if(e.target.id!=='bkup'||!e.target.files[0])return;const r=new FileReader();r.onload=()=>{try{S=lerBackup(r.result);salvar();render();toast('Dados restaurados')}catch(x){toast('Arquivo inválido')}};r.readAsText(e.target.files[0])});
+document.addEventListener('keydown',e=>{
+  const t=e.target;if(!t.id||!t.id.startsWith('np-'))return;
+  if(e.key==='Escape'){novaPessoaSlot=null;render();return}
+  if(e.key!=='Enter')return;const n=t.value.trim();if(!n)return;
+  let p=findByName(n);if(!p){p={id:uid(),nome:n,modo:'dia',fixo:false,tarifa:S.tarifas[0].id};S.pessoas.push(p)}
+  const d=dia(t.dataset.k);if(!d[t.dataset.leg].includes(p.id)&&d[t.dataset.leg].length<S.config.vagas)d[t.dataset.leg].push(p.id);
+  novaPessoaSlot=null;salvar();render();toast(n+' adicionado(a) como avulso(a)');
+});
+document.addEventListener('toggle',e=>{if(e.target.id==='vagasbox')vagasOpen=e.target.open;if(e.target.dataset&&e.target.dataset.ext)extOpen=e.target.open?e.target.dataset.ext:(extOpen===e.target.dataset.ext?null:extOpen)},true);
+document.addEventListener('focusout',e=>{if(e.target.id&&e.target.id.startsWith('np-')&&!e.target.value.trim()){setTimeout(()=>{novaPessoaSlot=null;render()},150)}});
+
+iniciar();
+</script>
+
+</body></html>
