@@ -121,6 +121,17 @@ details.tool[open] summary{margin-bottom:10px}
 .relcard{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .tabs{gap:2px}.tabs button{white-space:nowrap;padding:9px 4px;flex:1 1 auto;min-width:0}
 @media (max-width:440px){.tabs button{font-size:.74rem;padding:8px 2px}}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:4px}
+.card .seg{background:var(--bg)}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 .92rem var(--body);padding:8px 6px;border-radius:9px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2}
+.seg button small{font-weight:500;font-size:.72rem;font-variant-numeric:tabular-nums;opacity:.85}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.wa{display:flex;flex-direction:column;gap:10px}
+.wa details.tool{background:var(--bg)}
+.painel{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr);gap:4px 8px;align-items:center;font-size:.8rem;max-width:380px}
+.painel .ph{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.painel b{font-size:.72rem;text-transform:uppercase;letter-spacing:.06em}
+.painel input{width:100%;padding:5px 8px;font-variant-numeric:tabular-nums}
 .foot{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:.75rem;text-align:center;padding-top:6px}
 h1,h2,h3{letter-spacing:0}
 .stat .val{font-size:1.35rem}
@@ -182,6 +193,11 @@ h1,h2,h3{letter-spacing:0}
   .seat select{height:30px;width:auto;min-width:80px;font-size:.78rem;padding:2px 6px}
   .seat input{height:30px;width:118px;font-size:.8rem}
   .cons{flex-wrap:nowrap;gap:6px;font-size:.76rem}
+  .painel{grid-template-columns:40px minmax(0,1fr) minmax(0,1fr);gap:4px 6px}
+  .painel input{padding:4px 6px;font-size:.8rem}
+  .painel .ph{font-size:.58rem}
+  .seg button{font-size:.82rem;padding:6px 4px}
+  .seg button small{font-size:.64rem}
   .cons input{width:52px;padding:3px 5px;font-size:.8rem}
   .dayfoot{font-size:.74rem;gap:6px}
   .dayfoot input{font-size:.78rem;padding:5px 7px}
@@ -190,6 +206,17 @@ h1,h2,h3{letter-spacing:0}
   .person .nums div{font-size:.7rem}
   .erow{grid-template-columns:72px 1fr auto auto;font-size:.78rem}
 }
+
+/* barra de navegação inferior */
+.tabs.tabbar{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin:0;border:0;border-top:1px solid var(--line);border-radius:0;
+  background:var(--brand-dark);padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 18px rgba(12,17,27,.18)}
+.tabs.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px!important;border-radius:10px;background:transparent!important;color:#8FA6B8!important;font:600 .68rem var(--body)!important;min-width:0;white-space:nowrap}
+.tabs.tabbar button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs.tabbar button[aria-selected="true"]{color:var(--brand-cyan)!important}
+.tabs.tabbar button[aria-selected="true"] svg{background:rgba(0,191,255,.14);border-radius:999px;padding:2px 10px;width:44px;box-sizing:border-box;height:26px}
+.wrap{padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+.toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+@media (min-width:761px){.tabs.tabbar{left:50%;right:auto;width:min(760px,100%);transform:translateX(-50%);border-radius:14px 14px 0 0;border:1px solid var(--line);border-bottom:0}}
 </style>
 
 <div class="wrap">
@@ -200,17 +227,18 @@ h1,h2,h3{letter-spacing:0}
     <span class="sync" id="sync">Carregando…</span>
   </header>
 
-  <div class="tabs" role="tablist">
-    <button role="tab" data-tab="semana" aria-selected="true">Semana</button>
-    <button role="tab" data-tab="pessoas" aria-selected="false">Cobranças</button>
-    <button role="tab" data-tab="gasolina" aria-selected="false">Gasolina</button>
-    <button role="tab" data-tab="historico" aria-selected="false">Histórico</button>
-    <button role="tab" data-tab="ajustes" aria-selected="false">Ajustes</button>
-  </div>
+  
 
   <main id="view"></main>
   <footer class="foot"><span class="logo sm" aria-hidden="true"></span><span>NFC Soluções em Tecnologia e Infraestrutura · @nfc.does</span></footer>
 </div>
+<nav class="tabs tabbar" role="tablist" aria-label="Seções do app">
+    <button role="tab" data-tab="semana" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span>Semana</span></button>
+    <button role="tab" data-tab="pessoas" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.6"/><path d="M6 9.5v5M18 9.5v5"/></svg><span>Cobranças</span></button>
+    <button role="tab" data-tab="gasolina" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20V5.5A1.5 1.5 0 0 1 6.5 4h6A1.5 1.5 0 0 1 14 5.5V20M3.5 20h12M5 10h9"/><path d="M14 8.5h2l2.5 2.5V17a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg><span>Gasolina</span></button>
+    <button role="tab" data-tab="historico" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v4h4M12 8v4.5l3 2"/></svg><span>Histórico</span></button>
+    <button role="tab" data-tab="ajustes" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span>Ajustes</span></button>
+  </nav>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -221,7 +249,7 @@ function carregar(o){const x=Object.assign(JSON.parse(JSON.stringify(DEFAULT)),J
   if(!o||!Array.isArray(o.tarifas)||!o.tarifas.length){x.tarifas=[{id:'padrao',nome:'Padrão',valorDia:+(x.config.valorDia??28),valorTrecho:+(x.config.valorTrecho??14)}]}
   x.pessoas.forEach(p=>{if(!p.tarifa||(p.tarifa!=='proprio'&&!x.tarifas.some(t=>t.id===p.tarifa)))p.tarifa=x.tarifas[0].id});return x}
 let S=carregar(null);
-let mes=new Date().toISOString().slice(0,7),extOpen=null,vagasOpen=false,tab='semana', semana=mondayOf(new Date()), importPreview=null, novaPessoaSlot=null, payOpen=null, editOpen=null, copyText=null;
+let wSem=mondayOf(new Date()),mes=new Date().toISOString().slice(0,7),extOpen=null,vagasOpen=false,tab='semana', semana=mondayOf(new Date()), importPreview=null, novaPessoaSlot=null, payOpen=null, editOpen=null, copyText=null;
 try{const h=location.hash.slice(1); if(['semana','pessoas','gasolina','historico','ajustes'].includes(h)) tab=h;}catch(e){}
 
 /* ---------- datas ---------- */
@@ -241,11 +269,13 @@ const pessoa=id=>S.pessoas.find(p=>p.id===id);
 const nome=id=>pessoa(id)?.nome||'?';
 function dia(key){if(!S.viagens[key])S.viagens[key]={ida:[],volta:[],obs:'',off:false};return S.viagens[key]}
 function precoEm(k){const a=S.abastecimentos.filter(x=>x.data<=k&&x.preco>0).sort((a,b)=>b.data.localeCompare(a.data))[0];return a?a.preco:S.config.gasolina}
-function mediaConsumo(campo){const vs=[];Object.keys(S.viagens).sort().slice(-60).forEach(k=>{const v=S.viagens[k];(campo?[campo]:['consIda','consVolta']).forEach(f=>{if(v[f]>0)vs.push(+v[f])})});
-  return {n:vs.length,media:vs.length?vs.length/vs.reduce((a,c)=>a+1/c,0):S.config.consumo}}
+function mediaConsumo(campo){let km=0,l=0,n=0;Object.keys(S.viagens).sort().slice(-60).forEach(k=>{const v=S.viagens[k];if(v.off)return;(campo?[campo]:['consIda','consVolta']).forEach(f=>{if(v[f]>0){const d=kmT(k,f==='consIda'?'ida':'volta');km+=d;l+=d/v[f];n++}})});
+  return {n,media:n?km/l:S.config.consumo}}
 const fmtKml=x=>x.toFixed(1).replace('.',',')+' km/l';
+function kmT(k,leg){const v=S.viagens[k];const x=v&&v[leg==='ida'?'kmIda':'kmVolta'];return x>0?+x:S.config.kmTrecho}
+function kmDia(k){const v=S.viagens[k];if(v&&v.off)return 0;return kmT(k,'ida')+kmT(k,'volta')}
 function consTrecho(k,leg){const v=S.viagens[k];const c=v&&v[leg==='ida'?'consIda':'consVolta'];return c>0?+c:mediaConsumo().media}
-function custoTrecho(k,leg){return S.config.kmTrecho/consTrecho(k,leg)*precoEm(k)}
+function custoTrecho(k,leg){return kmT(k,leg)/consTrecho(k,leg)*precoEm(k)}
 function custoDiaK(k){const v=S.viagens[k];if(v&&v.off)return 0;return custoTrecho(k,'ida')+custoTrecho(k,'volta')}
 function custoDia(){return 2*S.config.kmTrecho/mediaConsumo().media*precoEm(HOJE)}
 function tarifaDe(p){return S.tarifas.find(t=>t.id===p?.tarifa)||S.tarifas[0]}
@@ -310,8 +340,8 @@ function lerWhats(txt){
   }
   return out;
 }
-function textoSemana(){
-  return semanaKeys(semana).map((k,i)=>{const v=S.viagens[k];if(!v||v.off)return null;
+function textoSemana(seg){seg=seg||semana;
+  return semanaKeys(seg).map((k,i)=>{const v=S.viagens[k];if(!v||v.off)return null;
     return [v.ida.map(nome).join(' '),'Ida',v.volta.map(nome).join(' '),'Volta',DIAS[i]].join('\n')}).filter(Boolean).join('\n\n');
 }
 function msgCobranca(p){
@@ -325,10 +355,10 @@ function msgCobranca(p){
 }
 
 function minutos(h){const m=String(h||'').match(/(\d{1,2})\s*[h:]\s*(\d{0,2})/i);return m?(+m[1])*60+(+(m[2]||0)):null}
-function msgVagas(){
+function msgVagas(seg){seg=seg||semana;
   const c=S.config,cap=c.vagas,agora=new Date(),nowMin=agora.getHours()*60+agora.getMinutes(),amanha=iso(addDays(agora,1));
   const blocos=[];
-  semanaKeys(semana).forEach((k,i)=>{if(k<HOJE)return;const v=S.viagens[k];if(v&&v.off)return;
+  semanaKeys(seg).forEach((k,i)=>{if(k<HOJE)return;const v=S.viagens[k];if(v&&v.off)return;
     const linhas=[];
     [['ida','Piumhi','Capitólio',c.horaIda],['volta','Capitólio','Piumhi',c.horaVolta]].forEach(([leg,de,para,hora])=>{
       const livres=cap-((v&&v[leg])||[]).length;if(livres<=0)return;
@@ -354,7 +384,9 @@ function telaSemana(){
   let rec=0,custo=0;ks.forEach(k=>{const v=S.viagens[k];rec+=receitaDia(v);custo+=custoDiaK(k)});
   const saldo=rec-custo;const pct=custo?Math.min(100,rec/custo*100):0;
   let h=`<div class="days">
-  ${iso(semana)!==iso(mondayOf(new Date()))?`<div class="card corrigindo"><span>Corrigindo a semana de <b>${ddmm(semana)} a ${ddmm(addDays(semana,4))}</b></span><button class="btn sm pri" data-act="semhoje">Voltar para esta semana</button></div>`:`<div class="card weeknav"><h2>Esta semana · ${ddmm(semana)} a ${ddmm(addDays(semana,4))}</h2></div>`}
+  ${(()=>{const at=mondayOf(new Date()),px=addDays(at,7),w=iso(semana);
+      if(w!==iso(at)&&w!==iso(px))return `<div class="card corrigindo"><span>Corrigindo a semana de <b>${ddmm(semana)} a ${ddmm(addDays(semana,4))}</b></span><button class="btn sm pri" data-act="semhoje">Voltar para esta semana</button></div>`;
+      return `<div class="seg" role="group" aria-label="Escolher semana"><button data-act="semhoje" aria-pressed="${w===iso(at)}">Esta semana<small>${ddmm(at)} a ${ddmm(addDays(at,4))}</small></button><button data-act="semprox" aria-pressed="${w===iso(px)}">Próxima semana<small>${ddmm(px)} a ${ddmm(addDays(px,4))}</small></button></div>`})()}
   <div class="card"><div class="stats">
     <div class="stat"><div class="lbl">Caronas</div><div class="val">${brl(rec)}</div></div>
     <div class="stat"><div class="lbl">Gasolina</div><div class="val">${brl(custo)}</div></div>
@@ -362,23 +394,8 @@ function telaSemana(){
     <div class="stat"><div class="lbl">Cobre</div><div class="val">${custo?Math.round(rec/custo*100):0}%</div></div>
   </div><div class="bar"><i style="width:${pct}%"></i></div>
   <p class="note calc" style="margin:8px 0 0">Gasolina por dia: ${2*c.kmTrecho} km ÷ ${fmtKml(mediaConsumo().media)}${mediaConsumo().n?' (média real)':''} × ${brl(precoEm(HOJE))}${S.abastecimentos.length?' (último abastecimento)':''} ≈ <b>${brl(cd)}</b>. Dias com média anotada usam o número do dia.</p></div>`;
-  const mv=msgVagas();
-  h+=`<details class="tool" id="vagasbox" ${vagasOpen?'open':''}><summary>Gerar mensagem de vagas para o grupo</summary>
-    <p class="note" style="margin:0 0 8px">Só entram os trechos com vaga livre, de hoje em diante nesta semana. Trechos de hoje que já passaram do horário ficam de fora.</p>
-    <div class="row"><label class="chk"><input type="checkbox" data-act="mvagas" ${c.mostrarVagas?'checked':''}> Mostrar quantas vagas</label><span class="spacer"></span><button class="btn pri" data-act="copvagas" ${mv?'':'disabled'}>Copiar mensagem</button></div>
-    ${mv?`<textarea readonly class="copybox" id="vagastxt" style="min-height:190px">${esc(mv)}</textarea>`:`<p class="empty" style="padding:12px 0">Sem vagas livres no resto desta semana.</p>`}
-    <p class="note" style="margin:6px 0 0">Horários e texto final ficam em Ajustes.</p></details>`;
-  if(!S.pessoas.length)h+=`<div class="card empty">Nenhum passageiro cadastrado ainda.<br>Cole sua mensagem do WhatsApp abaixo ou cadastre em <b>Pessoas e cobranças</b>.</div>`;
+  if(!S.pessoas.length)h+=`<div class="card empty">Nenhum passageiro cadastrado ainda.<br>Cole sua mensagem do WhatsApp em <b>Ajustes</b> ou cadastre em <b>Cobranças</b>.</div>`;
   ks.forEach((k,i)=>h+=cartaoDia(k,i));
-  h+=`<details class="tool" ${importPreview?'open':''}><summary>Colar marcação do WhatsApp</summary>
-    <p class="note" style="margin:0 0 8px">Cole no mesmo formato que você usa: nomes, "Ida", nomes, "Volta", dia. Vai para a semana de ${ddmm(semana)}. Nomes novos viram passageiros novos.</p>
-    <textarea id="wtxt" placeholder="Reynaldo Emily&#10;Ida&#10;Emily Rafaela Edvane Joao&#10;Volta&#10;Segunda"></textarea>
-    <div class="row" style="margin-top:8px"><button class="btn" data-act="ler">Ler mensagem</button>${importPreview?`<button class="btn pri" data-act="aplicar">Aplicar nesta semana</button><button class="btn" data-act="cancelar">Cancelar</button>`:''}</div>
-    ${importPreview?prevImport():''}</details>
-  <details class="tool"><summary>Copiar semana para o WhatsApp</summary>
-    <div class="row"><button class="btn" data-act="copsem">Copiar texto</button></div>
-    <textarea readonly class="copybox" id="semtxt">${esc(textoSemana())}</textarea></details>`;
-  if(copyText&&tab==='semana')h+=`<textarea readonly class="copybox" id="cpbox">${esc(copyText)}</textarea>`;
   return h+'</div>';
 }
 function prevImport(){
@@ -406,8 +423,10 @@ function cartaoDia(k,i){
   return `<section class="day ${k===HOJE?'today':''} ${v.off?'off':''}"><div class="dayhead"><h3>${DIAS[i]}</h3><span class="date">${ddmm(d)}</span>${k===HOJE?'<span class="pill hoje">hoje</span>':''}${v.off?'<span class="pill">não fui</span>':lot}<span class="spacer"></span>
     <label class="chk"><input type="checkbox" data-act="off" data-k="${k}" ${v.off?'checked':''}> Não fui</label></div>
     ${v.off?'':legs}
-    ${v.off?'':`<div class="cons"><span class="note">Consumo</span><label>ida <input type="number" step="0.1" min="0" id="ci-${k}" data-act="cons" data-k="${k}" data-f="consIda" value="${v.consIda||''}" placeholder="${mediaConsumo().media.toFixed(1)}"></label><label>volta <input type="number" step="0.1" min="0" id="cv-${k}" data-act="cons" data-k="${k}" data-f="consVolta" value="${v.consVolta||''}" placeholder="${mediaConsumo().media.toFixed(1)}"></label><span class="note">km/l</span></div>`}
-    <div class="dayfoot"><span>Entrou ${brl(rec)} · gasolina ${brl(v.off?0:cd)}</span>
+    ${v.off?'':`<div class="painel"><span></span><span class="ph">km rodados</span><span class="ph">média km/l</span>
+      <b>Ida</b><input type="number" inputmode="decimal" step="0.1" min="0" id="ki-${k}" data-act="cons" data-k="${k}" data-f="kmIda" value="${v.kmIda||''}" placeholder="${S.config.kmTrecho}" aria-label="Km rodados na ida"><input type="number" inputmode="decimal" step="0.1" min="0" id="ci-${k}" data-act="cons" data-k="${k}" data-f="consIda" value="${v.consIda||''}" placeholder="${mediaConsumo().media.toFixed(1)}" aria-label="Média km/l na ida">
+      <b>Volta</b><input type="number" inputmode="decimal" step="0.1" min="0" id="kv-${k}" data-act="cons" data-k="${k}" data-f="kmVolta" value="${v.kmVolta||''}" placeholder="${S.config.kmTrecho}" aria-label="Km rodados na volta"><input type="number" inputmode="decimal" step="0.1" min="0" id="cv-${k}" data-act="cons" data-k="${k}" data-f="consVolta" value="${v.consVolta||''}" placeholder="${mediaConsumo().media.toFixed(1)}" aria-label="Média km/l na volta"></div>`}
+    <div class="dayfoot"><span>Entrou ${brl(rec)} · gasolina ${brl(v.off?0:cd)}${v.off?'':' · '+String(Math.round(kmDia(k)*10)/10).replace('.',',')+' km'}</span>
     <input type="text" id="obs-${k}" data-act="obs" data-k="${k}" value="${esc(v.obs||'')}" placeholder="Observação (ex.: Ithalo paga sexta)"></div></section>`;
 }
 
@@ -467,11 +486,26 @@ function formPessoa(p){
 }
 
 function telaAjustes(){
-  const c=S.config;
-  return `<div class="days"><div class="card"><h2 style="font-size:1.2rem;margin-bottom:10px">Carro e gasolina</h2><div class="form">
+  const c=S.config;const at=mondayOf(new Date()),px=addDays(at,7),ws=iso(wSem);const mv=msgVagas(wSem);
+  return `<div class="days"><div class="card wa"><h2 style="font-size:1.2rem;margin-bottom:8px">WhatsApp</h2>
+    <div class="seg" role="group" aria-label="Semana usada no WhatsApp"><button data-act="wsem" data-d="0" aria-pressed="${ws===iso(at)}">Esta semana<small>${ddmm(at)} a ${ddmm(addDays(at,4))}</small></button><button data-act="wsem" data-d="7" aria-pressed="${ws===iso(px)}">Próxima semana<small>${ddmm(px)} a ${ddmm(addDays(px,4))}</small></button></div>
+    <details class="tool" id="vagasbox" ${vagasOpen?'open':''}><summary>Gerar mensagem de vagas para o grupo</summary>
+    <p class="note" style="margin:0 0 8px">Só entram os trechos com vaga livre da semana escolhida acima, de hoje em diante. Trechos de hoje que já passaram do horário ficam de fora.</p>
+    <div class="row"><label class="chk"><input type="checkbox" data-act="mvagas" ${c.mostrarVagas?'checked':''}> Mostrar quantas vagas</label><span class="spacer"></span><button class="btn pri" data-act="copvagas" ${mv?'':'disabled'}>Copiar mensagem</button></div>
+    ${mv?`<textarea readonly class="copybox" id="vagastxt" style="min-height:190px">${esc(mv)}</textarea>`:`<p class="empty" style="padding:12px 0">Sem vagas livres nessa semana.</p>`}</details>
+    <details class="tool" ${importPreview?'open':''}><summary>Colar marcação do WhatsApp</summary>
+    <p class="note" style="margin:0 0 8px">Cole no formato que você usa: nomes, "Ida", nomes, "Volta", dia. Vai para a semana de <b>${ddmm(wSem)} a ${ddmm(addDays(wSem,4))}</b>. Nomes novos viram passageiros novos.</p>
+    <textarea id="wtxt" placeholder="Reynaldo Emily&#10;Ida&#10;Emily Rafaela Edvane Joao&#10;Volta&#10;Segunda"></textarea>
+    <div class="row" style="margin-top:8px"><button class="btn" data-act="ler">Ler mensagem</button>${importPreview?`<button class="btn pri" data-act="aplicar">Aplicar na semana de ${ddmm(wSem)}</button><button class="btn" data-act="cancelar">Cancelar</button>`:''}</div>
+    ${importPreview?prevImport():''}</details>
+    <details class="tool"><summary>Copiar semana para o WhatsApp</summary>
+    <div class="row"><button class="btn" data-act="copsem">Copiar texto</button></div>
+    <textarea readonly class="copybox" id="semtxt">${esc(textoSemana(wSem))}</textarea></details>
+    ${copyText&&!copyText.startsWith('Oi, ')&&!copyText.startsWith('{')?`<textarea readonly class="copybox" id="cpbox">${esc(copyText)}</textarea>`:''}
+    <p class="note" style="margin:0">Horários e texto final da mensagem de vagas ficam logo abaixo, em Carro e gasolina.</p></div><div class="card"><h2 style="font-size:1.2rem;margin-bottom:10px">Carro e gasolina</h2><div class="form">
     <label>Preço padrão do litro (R$)<input type="number" step="0.01" id="cf-gasolina" value="${c.gasolina}"></label>
     <label>Consumo padrão (km/l)<input type="number" step="0.1" id="cf-consumo" value="${c.consumo}"></label>
-    <label>Km por trecho<input type="number" step="1" id="cf-kmTrecho" value="${c.kmTrecho}"></label>
+    <label>Km padrão por trecho<input type="number" step="1" id="cf-kmTrecho" value="${c.kmTrecho}"></label>
     <label>Vagas no carro<input type="number" step="1" min="1" id="cf-vagas" value="${c.vagas}"></label>
     <label>Horário da ida<input type="text" id="cf-horaIda" value="${esc(c.horaIda)}" placeholder="07h30"></label>
     <label>Horário da volta<input type="text" id="cf-horaVolta" value="${esc(c.horaVolta)}" placeholder="17h00"></label></div>
@@ -520,7 +554,7 @@ function telaGasolina(){
     <div class="stat"><div class="lbl">Ida</div><div class="val">${ci.n?fmtKml(ci.media):'—'}</div><div class="note">${ci.n} anotação(ões)</div></div>
     <div class="stat"><div class="lbl">Volta</div><div class="val">${cv.n?fmtKml(cv.media):'—'}</div><div class="note">${cv.n} anotação(ões)</div></div>
     <div class="stat"><div class="lbl">Geral</div><div class="val">${cg.n?fmtKml(cg.media):'—'}</div><div class="note">${cg.n?'usado nas contas':'usando o padrão '+fmtKml(S.config.consumo)}</div></div></div>
-    <p class="note" style="margin:8px 0 0">Anote a média do painel em cada dia, na aba Semana (campos "km/l ida" e "km/l volta"). Dias sem anotação usam a média das últimas anotações.</p></div>
+    <p class="note" style="margin:8px 0 0">Anote os km rodados e a média do painel de cada trecho na aba Semana, dentro do dia. Dias sem anotação usam o km padrão e a média das últimas anotações.</p></div>
 
   <div class="card"><h2 style="font-size:1.2rem;margin-bottom:8px">Abastecimentos</h2>
     ${abs.length?`<div class="ext">${abs.map(a=>`<div class="erow ab"><span>${ddmm(fromIso(a.data))}</span><span class="calc">${brl(a.valor)} · ${(a.litros||0).toFixed(1).replace('.',',')} l · ${brl(a.preco)}/l${a.km?' · '+a.km.toLocaleString('pt-BR')+' km':''}</span><button class="btn sm" data-act="abdel" data-id="${a.id}">apagar</button></div>`).join('')}</div>`:'<p class="empty" style="padding:8px 0">Nenhum abastecimento neste mês.</p>'}</div></div>`;
@@ -539,7 +573,7 @@ function paraXML(){
   L.push('  <tarifas>');S.tarifas.forEach(t=>L.push(`    <tarifa${attrs(t,['id','nome','valorDia','valorTrecho'])}/>`));L.push('  </tarifas>');
   L.push('  <pessoas>');S.pessoas.forEach(p=>L.push(`    <pessoa${attrs(p,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho'])}/>`));L.push('  </pessoas>');
   L.push('  <viagens>');Object.keys(S.viagens).sort().forEach(k=>{const v=S.viagens[k];
-    L.push(`    <dia data="${k}"${v.off?' off="true"':''}${attrs(v,['consIda','consVolta'])}>`);
+    L.push(`    <dia data="${k}"${v.off?' off="true"':''}${attrs(v,['consIda','consVolta','kmIda','kmVolta'])}>`);
     ['ida','volta'].forEach(leg=>L.push(`      <${leg}>${(v[leg]||[]).map(id=>`<p id="${xa(id)}"/>`).join('')}</${leg}>`));
     if(v.obs)L.push(`      <obs>${xa(v.obs)}</obs>`);
     L.push('    </dia>')});L.push('  </viagens>');
@@ -560,7 +594,7 @@ function deXML(txt){
   o.tarifas=[...r.querySelectorAll('tarifas > tarifa')].map(e=>at(e,['id','nome','valorDia','valorTrecho'],['valorDia','valorTrecho']));
   o.pessoas=[...r.querySelectorAll('pessoas > pessoa')].map(e=>at(e,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho'],['valorDia','valorTrecho']));
   o.viagens={};r.querySelectorAll('viagens > dia').forEach(e=>{const v={ida:[...e.querySelectorAll('ida > p')].map(p=>p.getAttribute('id')),volta:[...e.querySelectorAll('volta > p')].map(p=>p.getAttribute('id')),obs:e.querySelector('obs')?.textContent||'',off:e.getAttribute('off')==='true'};
-    ['consIda','consVolta'].forEach(f=>{const n=num(e.getAttribute(f));if(n>0)v[f]=n});o.viagens[e.getAttribute('data')]=v});
+    ['consIda','consVolta','kmIda','kmVolta'].forEach(f=>{const n=num(e.getAttribute(f));if(n>0)v[f]=n});o.viagens[e.getAttribute('data')]=v});
   o.pagamentos=[...r.querySelectorAll('pagamentos > pagamento')].map(e=>Object.assign(at(e,['id','pid','data','valor','obs'],['valor']),{dias:[...e.querySelectorAll('d')].map(d=>d.textContent)}));
   o.abastecimentos=[...r.querySelectorAll('abastecimentos > abastecimento')].map(e=>at(e,['id','data','valor','preco','litros','km'],['valor','preco','litros','km']));
   return o;
@@ -574,9 +608,9 @@ function relatorioXML(m){
   const [y,mm]=m.split('-').map(Number);const ini=m+'-01',fim=iso(new Date(y,mm,0));const dentro=k=>k>=ini&&k<=fim;
   const L=['<?xml version="1.0" encoding="UTF-8"?>',`<relatorio_mensal mes="${m}" gerado="${new Date().toISOString()}" empresa="NFC Soluções em Tecnologia e Infraestrutura">`];
   const ks=Object.keys(S.viagens).filter(dentro).sort();
-  let ger=0,est=0,dias=0;const cI=[],cV=[];
-  const linhasDia=ks.map(k=>{const v=S.viagens[k];const rec=receitaDia(v),cu=custoDiaK(k);if(!v.off){ger+=rec;est+=cu;dias++;if(v.consIda>0)cI.push(+v.consIda);if(v.consVolta>0)cV.push(+v.consVolta)}
-    return `    <dia data="${k}" dia_semana="${DIAS_CURTO[fromIso(k).getDay()]}" nao_fui="${v.off?'sim':'nao'}" ida="${xa(v.ida.map(nome).join(', '))}" volta="${xa(v.volta.map(nome).join(', '))}" passageiros_ida="${v.ida.length}" passageiros_volta="${v.volta.length}" caronas="${n2(rec)}" gasolina_estimada="${n2(cu)}" resultado="${n2(rec-cu)}" consumo_ida="${v.consIda||''}" consumo_volta="${v.consVolta||''}" preco_litro="${n2(precoEm(k))}"${v.obs?` obs="${xa(v.obs)}"`:''}/>`});
+  let ger=0,est=0,dias=0,kmMes=0;const cI=[],cV=[];
+  const linhasDia=ks.map(k=>{const v=S.viagens[k];const rec=receitaDia(v),cu=custoDiaK(k);if(!v.off){ger+=rec;est+=cu;dias++;kmMes+=kmDia(k);if(v.consIda>0)cI.push(+v.consIda);if(v.consVolta>0)cV.push(+v.consVolta)}
+    return `    <dia data="${k}" dia_semana="${DIAS_CURTO[fromIso(k).getDay()]}" nao_fui="${v.off?'sim':'nao'}" ida="${xa(v.ida.map(nome).join(', '))}" volta="${xa(v.volta.map(nome).join(', '))}" passageiros_ida="${v.ida.length}" passageiros_volta="${v.volta.length}" caronas="${n2(rec)}" gasolina_estimada="${n2(cu)}" resultado="${n2(rec-cu)}" consumo_ida="${v.consIda||''}" consumo_volta="${v.consVolta||''}" km_ida="${v.off?'':kmT(k,'ida')}" km_volta="${v.off?'':kmT(k,'volta')}" preco_litro="${n2(precoEm(k))}"${v.obs?` obs="${xa(v.obs)}"`:''}/>`});
   const abs=S.abastecimentos.filter(a=>dentro(a.data)).sort((a,b)=>a.data.localeCompare(b.data));
   const gasto=abs.reduce((s,a)=>s+a.valor,0),lit=abs.reduce((s,a)=>s+(a.litros||0),0);
   const pags=S.pagamentos.filter(p=>dentro(p.data)).sort((a,b)=>a.data.localeCompare(b.data));
@@ -588,7 +622,7 @@ function relatorioXML(m){
     const val=ds.reduce((s,d)=>s+d.valor,0),pg=ds.reduce((s,d)=>s+d.pago,0),ab=ds.filter(d=>d.k<=HOJE).reduce((s,d)=>s+d.valor-d.pago,0),av=ds.filter(d=>d.k>HOJE).reduce((s,d)=>s+d.valor-d.pago,0);
     aberto+=ab;aVencer+=av;
     linhasP.push(`    <passageiro nome="${xa(p.nome)}" tipo="${p.fixo?'fixo':'avulso'}" paga="${p.modo==='semana'?'por semana':'por dia'}" valor_ida_volta="${n2(valores(p.id).d)}" valor_trecho="${n2(valores(p.id).t)}" dias="${ds.length}" trechos="${tr}" total="${n2(val)}" pago="${n2(pg)}" em_aberto="${n2(ab)}" a_vencer="${n2(av)}"/>`)});
-  L.push(`  <resumo caronas_do_mes="${n2(ger)}" recebido_no_mes="${n2(rec)}" em_aberto="${n2(aberto)}" a_vencer="${n2(aVencer)}" gasolina_abastecida="${n2(gasto)}" litros_abastecidos="${lit.toFixed(2)}" preco_medio_litro="${lit?n2(gasto/lit):''}" dias_rodados="${dias}" km_rodados="${dias*2*S.config.kmTrecho}" gasolina_estimada_dos_dias="${n2(est)}" consumo_medio_ida="${cI.length?harm(cI).toFixed(1):''}" consumo_medio_volta="${cV.length?harm(cV).toFixed(1):''}" resultado_caronas_menos_abastecido="${n2(ger-gasto)}" resultado_caronas_menos_estimado="${n2(ger-est)}"/>`);
+  L.push(`  <resumo caronas_do_mes="${n2(ger)}" recebido_no_mes="${n2(rec)}" em_aberto="${n2(aberto)}" a_vencer="${n2(aVencer)}" gasolina_abastecida="${n2(gasto)}" litros_abastecidos="${lit.toFixed(2)}" preco_medio_litro="${lit?n2(gasto/lit):''}" dias_rodados="${dias}" km_rodados="${(Math.round(kmMes*10)/10)}" gasolina_estimada_dos_dias="${n2(est)}" consumo_medio_ida="${cI.length?harm(cI).toFixed(1):''}" consumo_medio_volta="${cV.length?harm(cV).toFixed(1):''}" resultado_caronas_menos_abastecido="${n2(ger-gasto)}" resultado_caronas_menos_estimado="${n2(ger-est)}"/>`);
   L.push('  <passageiros>',...linhasP,'  </passageiros>');
   L.push('  <dias>',...linhasDia,'  </dias>');
   L.push('  <abastecimentos>',...abs.map(a=>`    <abastecimento data="${a.data}" valor="${n2(a.valor)}" preco_litro="${n2(a.preco)}" litros="${(a.litros||0).toFixed(2)}" km="${a.km||''}"/>`),'  </abastecimentos>');
@@ -618,12 +652,12 @@ document.addEventListener('click',e=>{
   else if(a==='ler'){const txt=document.getElementById('wtxt').value;const r=lerWhats(txt);if(!r.length){toast('Não achei nenhum dia na mensagem');return}importPreview=r;render();document.getElementById('wtxt').value=txt}
   else if(a==='cancelar'){importPreview=null;render()}
   else if(a==='aplicar'){
-    const ks=semanaKeys(semana);
+    const ks=semanaKeys(wSem);
     const pid=n=>{let p=findByName(n);if(!p){p={id:uid(),nome:n.charAt(0).toUpperCase()+n.slice(1),modo:'dia',fixo:true,tarifa:S.tarifas[0].id};S.pessoas.push(p)}return p.id};
     importPreview.forEach(d=>{const v=dia(ks[d.idx]);v.ida=[...new Set(d.ida.map(pid))];v.volta=[...new Set(d.volta.map(pid))];v.off=false});
-    importPreview=null;salvar();render();toast('Semana atualizada')}
-  else if(a==='copsem')copiar(textoSemana());
-  else if(a==='copvagas'){const m=msgVagas();if(m)copiar(m)}
+    importPreview=null;semana=wSem;salvar();render();toast('Marcação aplicada na semana de '+ddmm(wSem))}
+  else if(a==='copsem')copiar(textoSemana(wSem));
+  else if(a==='copvagas'){const m=msgVagas(wSem);if(m)copiar(m)}
   else if(a==='payopen'){payOpen=payOpen===id?null:id;render()}
   else if(a==='payclose'){payOpen=null;render()}
   else if(a==='paysave'){const v=parseFloat(String(document.getElementById('pv-'+id).value).replace(',','.'));if(!(v>0)){toast('Digite o valor recebido');return}
@@ -655,6 +689,8 @@ document.addEventListener('click',e=>{
   else if(a==='bkfile'){const b=new Blob([paraXML()],{type:'application/xml'});const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download='caronas-backup-'+HOJE+'.xml';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);try{localStorage.setItem('caronas-ultimo-backup',HOJE)}catch(e){}}
   else if(a==='editsem'){semana=fromIso(t.dataset.w);tab='semana';try{history.replaceState(null,'','#semana')}catch(e){}render();scrollTo(0,0)}
   else if(a==='semhoje'){semana=mondayOf(new Date());render()}
+  else if(a==='semprox'){semana=addDays(mondayOf(new Date()),7);render()}
+  else if(a==='wsem'){wSem=addDays(mondayOf(new Date()),+t.dataset.d);importPreview=null;copyText=null;render()}
   else if(a==='relxml'){baixar('caronas-relatorio-'+mes+'.xml',relatorioXML(mes))}
   else if(a==='bkcopy')copiar(JSON.stringify(S));
   else if(a==='bkload'){try{S=lerBackup(document.getElementById('bk').value);salvar();render();toast('Dados restaurados')}catch(e){toast('Texto inválido')}}
