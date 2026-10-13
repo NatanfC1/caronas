@@ -137,6 +137,11 @@ details.tool[open] summary{margin-bottom:10px}
 .painel input{width:100%;padding:5px 8px;font-variant-numeric:tabular-nums}
 .person .nums.n4{grid-template-columns:repeat(4,minmax(0,1fr))}
 .fixbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 12px}
+.painel.p4{grid-template-columns:44px minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr);max-width:460px}
+.painel select.modo{width:100%;padding:5px 4px;font-size:.78rem;background:var(--bg);border:1px solid var(--line);border-radius:7px}
+.gastobox{grid-column:span 2;display:flex;align-items:center;gap:6px;font-size:.74rem;color:var(--muted);white-space:nowrap}
+.gastobox input{flex:1;min-width:0}
+.semcarro{font-size:.85rem;color:var(--muted);padding:6px 0;font-weight:500}
 .foot{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:.75rem;text-align:center;padding-top:6px}
 h1,h2,h3{letter-spacing:0}
 .stat .val{font-size:1.35rem}
@@ -199,6 +204,9 @@ h1,h2,h3{letter-spacing:0}
   .seat input{height:30px;width:118px;font-size:.8rem}
   .cons{flex-wrap:nowrap;gap:6px;font-size:.76rem}
   .painel{grid-template-columns:40px minmax(0,1fr) minmax(0,1fr);gap:4px 6px}
+  .painel.p4{grid-template-columns:38px minmax(0,1.2fr) minmax(0,1fr) minmax(0,1fr);gap:4px 5px}
+  .painel select.modo{font-size:.7rem;padding:4px 2px}
+  .semcarro{font-size:.78rem}
   .painel input{padding:4px 6px;font-size:.8rem}
   .painel .ph{font-size:.58rem}
   .seg button{font-size:.82rem;padding:6px 4px}
@@ -268,7 +276,7 @@ h1,h2,h3{letter-spacing:0}
 
 <script>
 const DIAS=['Segunda','Terça','Quarta','Quinta','Sexta'];
-const DEFAULT={config:{kmTrecho:32,consumo:12.8,gasolina:6.10,vagas:4,horaIda:'07h30',horaVolta:'17h00',mostrarVagas:false,pedagio:9.10,pedIda:true,pedVolta:true,rodape:'🚨Tenho vagas de Segunda a Sexta\n➡️Interessados favor chamar no privado'},tarifas:[{id:'padrao',nome:'Padrão',valorDia:28,valorTrecho:14}],pessoas:[],viagens:{},pagamentos:[],abastecimentos:[]};
+const DEFAULT={config:{kmTrecho:32,consumo:12.8,gasolina:6.10,vagas:4,horaIda:'07h30',horaVolta:'17h00',mostrarVagas:false,pedagio:9.10,pedIda:true,pedVolta:true,onibusValor:0,caronaValor:0,rodape:'🚨Tenho vagas de Segunda a Sexta\n➡️Interessados favor chamar no privado'},tarifas:[{id:'padrao',nome:'Padrão',valorDia:28,valorTrecho:14}],pessoas:[],viagens:{},pagamentos:[],abastecimentos:[]};
 function carregar(o){const x=Object.assign(JSON.parse(JSON.stringify(DEFAULT)),JSON.parse(JSON.stringify(o||{})));
   x.config=Object.assign({},DEFAULT.config,(o&&o.config)||{});
   x.config.pedHist=Array.isArray(x.config.pedHist)&&x.config.pedHist.length?x.config.pedHist.map(e=>({desde:e.desde,valor:+e.valor})):[{desde:'2000-01-01',valor:+x.config.pedagio||0}];
@@ -295,27 +303,32 @@ const pessoa=id=>S.pessoas.find(p=>p.id===id);
 const nome=id=>pessoa(id)?.nome||'?';
 function dia(key){if(!S.viagens[key])S.viagens[key]={ida:[],volta:[],obs:'',off:false};return S.viagens[key]}
 function precoEm(k){const a=S.abastecimentos.filter(x=>x.data<=k&&x.preco>0).sort((a,b)=>b.data.localeCompare(a.data))[0];return a?a.preco:S.config.gasolina}
-function mediaConsumo(campo){let km=0,l=0,n=0;Object.keys(S.viagens).sort().slice(-60).forEach(k=>{const v=S.viagens[k];if(v.off)return;(campo?[campo]:['consIda','consVolta']).forEach(f=>{if(v[f]>0){const d=kmT(k,f==='consIda'?'ida':'volta');km+=d;l+=d/v[f];n++}})});
+function mediaConsumo(campo){let km=0,l=0,n=0;Object.keys(S.viagens).sort().slice(-60).forEach(k=>{const v=S.viagens[k];if(v.off)return;(campo?[campo]:['consIda','consVolta']).forEach(f=>{if(v[f]>0&&deCarro(v,f==='consIda'?'ida':'volta')){const d=kmT(k,f==='consIda'?'ida':'volta');km+=d;l+=d/v[f];n++}})});
   return {n,media:n?km/l:S.config.consumo}}
 const fmtKml=x=>x.toFixed(1).replace('.',',')+' km/l';
+const MODOS={carro:'🚗 Carro',onibus:'🚌 Ônibus',carona:'🙋 Carona'};
+function modoT(v,leg){return (v&&v[leg==='ida'?'modoIda':'modoVolta'])||'carro'}
+function deCarro(v,leg){if(!v)return true;if(v.off)return false;return modoT(v,leg)==='carro'}
+function gastoT(k,leg){const v=S.viagens[k];if(!v||v.off||deCarro(v,leg))return 0;const f=leg==='ida'?'gastoIda':'gastoVolta';if(v[f]!=null&&v[f]!=='')return +v[f];return modoT(v,leg)==='onibus'?(+S.config.onibusValor||0):(+S.config.caronaValor||0)}
+function outrosDia(k){return gastoT(k,'ida')+gastoT(k,'volta')}
 function kmT(k,leg){const v=S.viagens[k];const x=v&&v[leg==='ida'?'kmIda':'kmVolta'];return x>0?+x:S.config.kmTrecho}
-function kmDia(k){const v=S.viagens[k];if(v&&v.off)return 0;return kmT(k,'ida')+kmT(k,'volta')}
+function kmDia(k){const v=S.viagens[k];if(v&&v.off)return 0;return (deCarro(v,'ida')?kmT(k,'ida'):0)+(deCarro(v,'volta')?kmT(k,'volta'):0)}
 function consTrecho(k,leg){const v=S.viagens[k];const c=v&&v[leg==='ida'?'consIda':'consVolta'];return c>0?+c:mediaConsumo().media}
 function custoTrecho(k,leg){return kmT(k,leg)/consTrecho(k,leg)*precoEm(k)}
-function custoDiaK(k){const v=S.viagens[k];if(v&&v.off)return 0;return custoTrecho(k,'ida')+custoTrecho(k,'volta')}
+function custoDiaK(k){const v=S.viagens[k];if(v&&v.off)return 0;return (deCarro(v,'ida')?custoTrecho(k,'ida'):0)+(deCarro(v,'volta')?custoTrecho(k,'volta'):0)}
 function pedagioEm(k){const h=S.config.pedHist||[];let v=+S.config.pedagio||0;h.slice().sort((a,b)=>a.desde.localeCompare(b.desde)).forEach(e=>{if(e.desde<=k)v=+e.valor});return v}
-function passagensDia(k){const v=S.viagens[k];if(v&&v.off)return 0;return (S.config.pedIda?1:0)+(S.config.pedVolta?1:0)}
+function passagensDia(k){const v=S.viagens[k];if(v&&v.off)return 0;return (S.config.pedIda&&deCarro(v,'ida')?1:0)+(S.config.pedVolta&&deCarro(v,'volta')?1:0)}
 function pedDia(k){return passagensDia(k)*pedagioEm(k)}
 function custoDia(){return 2*S.config.kmTrecho/mediaConsumo().media*precoEm(HOJE)}
 function tarifaDe(p){return S.tarifas.find(t=>t.id===p?.tarifa)||S.tarifas[0]}
 function valores(pid){const p=pessoa(pid);if(p&&p.tarifa==='proprio')return {d:+p.valorDia||0,t:+p.valorTrecho||0};const t=tarifaDe(p);return {d:+t.valorDia||0,t:+t.valorTrecho||0}}
 function rotuloTarifa(p){if(p.tarifa==='proprio')return 'Valor próprio · '+brl(+p.valorDia||0)+' / '+brl(+p.valorTrecho||0);const t=tarifaDe(p);return t.nome+' · '+brl(t.valorDia)+' / '+brl(t.valorTrecho)}
-function cobranca(v,pid){if(!v||v.off)return 0;const a=v.ida.includes(pid),b=v.volta.includes(pid);if(!a&&!b)return 0;const x=valores(pid);return a&&b?x.d:x.t}
+function cobranca(v,pid){if(!v||v.off)return 0;const a=deCarro(v,'ida')&&v.ida.includes(pid),b=deCarro(v,'volta')&&v.volta.includes(pid);if(!a&&!b)return 0;const x=valores(pid);return a&&b?x.d:x.t}
 function receitaDia(v){if(!v||v.off)return 0;const ids=new Set([...v.ida,...v.volta]);let t=0;ids.forEach(id=>t+=cobranca(v,id));return t}
 function devido(pid,ate){let t=0;for(const k in S.viagens){if(ate&&k>ate)continue;t+=cobranca(S.viagens[k],pid)}return t}
 const DIAS_CURTO=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 function extrato(pid){
-  const dias=Object.keys(S.viagens).sort().map(k=>{const v=S.viagens[k];const c=cobranca(v,pid);if(!c)return null;const a=v.ida.includes(pid),b=v.volta.includes(pid);return {k,valor:c,pago:0,tipo:a&&b?'ida e volta':a?'só ida':'só volta'}}).filter(Boolean);
+  const dias=Object.keys(S.viagens).sort().map(k=>{const v=S.viagens[k];const c=cobranca(v,pid);if(!c)return null;const a=deCarro(v,'ida')&&v.ida.includes(pid),b=deCarro(v,'volta')&&v.volta.includes(pid);return {k,valor:c,pago:0,tipo:a&&b?'ida e volta':a?'só ida':'só volta'}}).filter(Boolean);
   const byK={};dias.forEach(d=>byK[d.k]=d);let pool=0;
   S.pagamentos.filter(x=>x.pid===pid).sort((a,b)=>a.data.localeCompare(b.data)).forEach(x=>{let r=x.valor;
     (x.dias||[]).slice().sort().forEach(k=>{const d=byK[k];if(!d||r<=0)return;const u=Math.min(r,d.valor-d.pago);d.pago+=u;r-=u});pool+=r});
@@ -337,7 +350,7 @@ function saveLocal(){try{localStorage.setItem(LS,JSON.stringify(S))}catch(e){}}
 function salvar(){saveLocal();if(!docRef)return;clearTimeout(timer);timer=setTimeout(flush,500)}
 async function flush(){if(writing){again=true;return}writing=true;const js=JSON.stringify(S);try{await docRef.set(JSON.parse(js));lastSaved=js;setSync(true)}catch(e){setSync(false,'Não salvou na nuvem: '+(e.message||e.code))}writing=false;if(again){again=false;flush()}}
 function setSync(ok,msg){document.getElementById('sync').textContent=msg||'Salvo neste celular'}
-function fixosDe(seg,i){for(let b=1;b<=4;b++){const sv=S.viagens[iso(addDays(seg,i-7*b))];if(sv&&!sv.off){const f=id=>pessoa(id)&&pessoa(id).fixo;return {ida:sv.ida.filter(f),volta:sv.volta.filter(f)}}}return null}
+function fixosDe(seg,i){const f=id=>pessoa(id)&&pessoa(id).fixo;const r={ida:[],volta:[]};let achou=false;['ida','volta'].forEach(leg=>{for(let b=1;b<=4;b++){const sv=S.viagens[iso(addDays(seg,i-7*b))];if(sv&&!sv.off&&deCarro(sv,leg)){r[leg]=sv[leg].filter(f);achou=true;break}}});return achou?r:null}
 function preencherFixos(seg){let n=0;for(let i=0;i<5;i++){const k=iso(addDays(seg,i));if(S.viagens[k])continue;const f=fixosDe(seg,i);if(f&&(f.ida.length||f.volta.length)){S.viagens[k]={ida:f.ida,volta:f.volta,obs:'',off:false};n++}}return n}
 function autoFixos(){const at=mondayOf(new Date());return preencherFixos(at)+preencherFixos(addDays(at,7))}
 async function iniciar(){
@@ -374,7 +387,7 @@ function lerWhats(txt){
 }
 function textoSemana(seg){seg=seg||semana;
   return semanaKeys(seg).map((k,i)=>{const v=S.viagens[k];if(!v||v.off)return null;
-    return [v.ida.map(nome).join(' '),'Ida',v.volta.map(nome).join(' '),'Volta',DIAS[i]].join('\n')}).filter(Boolean).join('\n\n');
+    const nl=leg=>deCarro(v,leg)?v[leg].map(nome).join(' '):'('+(modoT(v,leg)==='onibus'?'ônibus':'carona')+')';return [nl('ida'),'Ida',nl('volta'),'Volta',DIAS[i]].join('\n')}).filter(Boolean).join('\n\n');
 }
 function msgCobranca(p){
   const e=extrato(p.id);const fimSem=iso(addDays(mondayOf(new Date()),4));
@@ -393,7 +406,7 @@ function msgVagas(seg){seg=seg||semana;
   semanaKeys(seg).forEach((k,i)=>{if(k<HOJE)return;const v=S.viagens[k];if(v&&v.off)return;
     const linhas=[];
     [['ida','Piumhi','Capitólio',c.horaIda],['volta','Capitólio','Piumhi',c.horaVolta]].forEach(([leg,de,para,hora])=>{
-      const livres=cap-((v&&v[leg])||[]).length;if(livres<=0)return;
+      if(!deCarro(v,leg))return;const livres=cap-((v&&v[leg])||[]).length;if(livres<=0)return;
       if(k===HOJE){const mm=minutos(hora);if(mm!==null&&mm<=nowMin)return}
       linhas.push(`📍 ${de} ➡️ ${para}: ${hora}`+(c.mostrarVagas?` (${livres} vaga${livres>1?'s':''})`:''))});
     if(linhas.length)blocos.push(`${DIAS[i].toUpperCase()} ${ddmm(fromIso(k))}`+(k===HOJE?'  HOJE':k===amanha?'  AMANHÃ':'')+'\n'+linhas.join('\n'))});
@@ -413,8 +426,8 @@ function render(){
 function pagoNoDia(pid,k){const c=(render._ext||(render._ext={}));if(!c[pid])c[pid]=extrato(pid);const d=c[pid].dias.find(x=>x.k===k);return d&&d.valor-d.pago<=0.009}
 function telaSemana(){
   const ks=semanaKeys(semana);const c=S.config;const cd=custoDia();
-  let rec=0,gas=0,ped=0;ks.forEach(k=>{const v=S.viagens[k];rec+=receitaDia(v);gas+=custoDiaK(k);ped+=pedDia(k)});
-  const custo=gas+ped,saldo=rec-custo;const pct=custo?Math.min(100,rec/custo*100):0;
+  let rec=0,gas=0,ped=0,out=0;ks.forEach(k=>{const v=S.viagens[k];rec+=receitaDia(v);gas+=custoDiaK(k);ped+=pedDia(k);out+=outrosDia(k)});
+  const custo=gas+ped+out,saldo=rec-custo;const pct=custo?Math.min(100,rec/custo*100):0;
   let h=`<div class="days">
   ${(()=>{const at=mondayOf(new Date()),px=addDays(at,7),w=iso(semana);
       if(w!==iso(at)&&w!==iso(px))return `<div class="card corrigindo"><span>Corrigindo a semana de <b>${ddmm(semana)} a ${ddmm(addDays(semana,4))}</b></span><button class="btn sm pri" data-act="semhoje">Voltar para esta semana</button></div>`;
@@ -425,7 +438,7 @@ function telaSemana(){
     <div class="stat"><div class="lbl">Pedágio</div><div class="val">${brl(ped)}</div></div>
     <div class="stat"><div class="lbl">Sobra</div><div class="val ${saldo>=0?'pos':'neg'}">${brl(saldo)}</div></div>
   </div><div class="bar"><i style="width:${pct}%"></i></div>
-  <p class="note calc" style="margin:6px 0 0">As caronas cobrem <b>${custo?Math.round(rec/custo*100):0}%</b> da gasolina + pedágio da semana.</p>
+  <p class="note calc" style="margin:6px 0 0">As caronas cobrem <b>${custo?Math.round(rec/custo*100):0}%</b> do gasto da semana${out?` (gasolina + pedágio + <b>${brl(out)}</b> de ônibus/carona)`:' (gasolina + pedágio)'}.</p>
   <p class="note calc" style="margin:8px 0 0">Gasolina por dia: ${2*c.kmTrecho} km ÷ ${fmtKml(mediaConsumo().media)}${mediaConsumo().n?' (média real)':''} × ${brl(precoEm(HOJE))}${S.abastecimentos.length?' (último abastecimento)':''} ≈ <b>${brl(cd)}</b>. Pedágio: ${passagensDia(HOJE)} × ${brl(pedagioEm(HOJE))} = <b>${brl(passagensDia(HOJE)*pedagioEm(HOJE))}</b> por dia.</p></div>`;
   if(!S.pessoas.length)h+=`<div class="card empty">Nenhum passageiro cadastrado ainda.<br>Cole sua mensagem do WhatsApp em <b>Ajustes</b> ou cadastre em <b>Cobranças</b>.</div>`;
   if(iso(semana)===iso(addDays(mondayOf(new Date()),7)))h+=`<div class="card fixbar"><span class="note">Os fixos desta semana já vêm marcados aqui. Se faltou alguém, use o botão.</span><button class="btn sm" data-act="copfix">Copiar fixos da semana atual</button></div>`;
@@ -437,10 +450,19 @@ function prevImport(){
     return `<div><b>${DIAS[d.idx]}</b> — ida: ${esc(d.ida.join(', ')||'ninguém')} · volta: ${esc(d.volta.join(', ')||'ninguém')} ${over?'<span class="pill full">passa de '+S.config.vagas+'</span>':''}</div>`}).join('')+
     (()=>{const novos=[...new Set(importPreview.flatMap(d=>[...d.ida,...d.volta]))].filter(n=>!findByName(n));return novos.length?`<div class="note">Novos passageiros: ${esc(novos.join(', '))}</div>`:''})()+`</div>`;
 }
+function painelDia(k,v){
+  const row=(leg)=>{const L=leg==='ida'?'Ida':'Volta',K=leg==='ida'?'Ida':'Volta',m=modoT(v,leg);
+    const sel=`<select class="modo" id="mo-${k}-${leg}" data-act="modo" data-k="${k}" data-leg="${leg}" aria-label="Como fui na ${leg}">${Object.entries(MODOS).map(([val,lab])=>`<option value="${val}" ${m===val?'selected':''}>${lab}</option>`).join('')}</select>`;
+    if(m==='carro')return `<b>${L}</b>${sel}<input type="number" inputmode="decimal" step="0.1" min="0" id="k${leg[0]}-${k}" data-act="cons" data-k="${k}" data-f="km${K}" value="${v['km'+K]||''}" placeholder="${S.config.kmTrecho}" aria-label="Km rodados na ${leg}"><input type="number" inputmode="decimal" step="0.1" min="0" id="c${leg[0]}-${k}" data-act="cons" data-k="${k}" data-f="cons${K}" value="${v['cons'+K]||''}" placeholder="${mediaConsumo().media.toFixed(1)}" aria-label="Média km/l na ${leg}">`;
+    const pad=m==='onibus'?(+S.config.onibusValor||0):(+S.config.caronaValor||0);
+    return `<b>${L}</b>${sel}<label class="gastobox">gastei R$<input type="number" inputmode="decimal" step="0.01" min="0" id="g${leg[0]}-${k}" data-act="gasto" data-k="${k}" data-f="gasto${K}" value="${v['gasto'+K]!=null?v['gasto'+K]:''}" placeholder="${pad.toFixed(2)}" aria-label="Quanto gastei na ${leg}"></label>`};
+  return `<div class="painel p4"><span></span><span class="ph">como fui</span><span class="ph">km rodados</span><span class="ph">média km/l</span>${row('ida')}${row('volta')}</div>`;
+}
 function cartaoDia(k,i){
   const v=S.viagens[k]||{ida:[],volta:[],obs:'',off:false};const d=fromIso(k);const cap=S.config.vagas;
   const rec=receitaDia(v),cd=custoDiaK(k);
   const legs=['ida','volta'].map(leg=>{
+    if(!deCarro(v,leg)){const n=(v[leg]||[]).length;return `<div class="leg"><div class="lname">${leg==='ida'?'Ida':'Volta'}</div><div class="semcarro">${modoT(v,leg)==='onibus'?'🚌 Fui de ônibus':'🙋 Fui de carona'} · sem passageiros${n?` <span class="note">(${n} marcado${n>1?'s':''} guardado${n>1?'s':''})</span>`:''}</div></div>`}
     const ids=v[leg]||[];const full=ids.length>=cap;
     let seats=ids.map((id,j)=>`<div class="seat taken ${j>=cap?'over':''}"><span title="${esc(nome(id))}">${pagoNoDia(id,k)?'<b class="tick" title="pago">✓</b> ':''}${esc(nome(id))}</span><button data-act="rm" data-k="${k}" data-leg="${leg}" data-id="${id}" aria-label="Tirar ${esc(nome(id))}">×</button></div>`).join('');
     const livres=Math.max(0,cap-ids.length);
@@ -453,14 +475,12 @@ function cartaoDia(k,i){
     const st=ids.length>cap?`<small style="color:var(--bad)">${ids.length}/${cap}!</small>`:`<small>${ids.length}/${cap}</small>`;
     return `<div class="leg"><div class="lname">${leg==='ida'?'Ida':'Volta'}${st}</div><div class="seats">${seats}</div></div>`;
   }).join('');
-  const fI=v.ida.length>=cap,fV=v.volta.length>=cap;const lot=fI&&fV?'<span class="pill full">lotado</span>':fI?'<span class="pill full">ida cheia</span>':fV?'<span class="pill full">volta cheia</span>':'';
+  const fI=deCarro(v,'ida')&&v.ida.length>=cap,fV=deCarro(v,'volta')&&v.volta.length>=cap;const lot=fI&&fV?'<span class="pill full">lotado</span>':fI?'<span class="pill full">ida cheia</span>':fV?'<span class="pill full">volta cheia</span>':'';
   return `<section class="day ${k===HOJE?'today':''} ${v.off?'off':''}"><div class="dayhead"><h3>${DIAS[i]}</h3><span class="date">${ddmm(d)}</span>${k===HOJE?'<span class="pill hoje">hoje</span>':''}${v.off?'<span class="pill">não fui</span>':lot}<span class="spacer"></span>
     <label class="chk"><input type="checkbox" data-act="off" data-k="${k}" ${v.off?'checked':''}> Não fui</label></div>
     ${v.off?'':legs}
-    ${v.off?'':`<div class="painel"><span></span><span class="ph">km rodados</span><span class="ph">média km/l</span>
-      <b>Ida</b><input type="number" inputmode="decimal" step="0.1" min="0" id="ki-${k}" data-act="cons" data-k="${k}" data-f="kmIda" value="${v.kmIda||''}" placeholder="${S.config.kmTrecho}" aria-label="Km rodados na ida"><input type="number" inputmode="decimal" step="0.1" min="0" id="ci-${k}" data-act="cons" data-k="${k}" data-f="consIda" value="${v.consIda||''}" placeholder="${mediaConsumo().media.toFixed(1)}" aria-label="Média km/l na ida">
-      <b>Volta</b><input type="number" inputmode="decimal" step="0.1" min="0" id="kv-${k}" data-act="cons" data-k="${k}" data-f="kmVolta" value="${v.kmVolta||''}" placeholder="${S.config.kmTrecho}" aria-label="Km rodados na volta"><input type="number" inputmode="decimal" step="0.1" min="0" id="cv-${k}" data-act="cons" data-k="${k}" data-f="consVolta" value="${v.consVolta||''}" placeholder="${mediaConsumo().media.toFixed(1)}" aria-label="Média km/l na volta"></div>`}
-    <div class="dayfoot"><span>Entrou ${brl(rec)} · gasolina ${brl(v.off?0:cd)}${v.off?'':' · pedágio '+brl(pedDia(k))}${v.off?'':' · '+String(Math.round(kmDia(k)*10)/10).replace('.',',')+' km'}</span>
+    ${v.off?'':painelDia(k,v)}
+    <div class="dayfoot"><span>Entrou ${brl(rec)} · gasolina ${brl(v.off?0:cd)}${v.off?'':' · pedágio '+brl(pedDia(k))}${outrosDia(k)?' · ônibus/carona '+brl(outrosDia(k)):''}${v.off?'':' · '+String(Math.round(kmDia(k)*10)/10).replace('.',',')+' km'}</span>
     <input type="text" id="obs-${k}" data-act="obs" data-k="${k}" value="${esc(v.obs||'')}" placeholder="Observação (ex.: Ithalo paga sexta)"></div></section>`;
 }
 
@@ -541,6 +561,10 @@ function telaAjustes(){
     <div class="row" style="margin-top:8px"><label class="chk"><input type="checkbox" id="ped-ida" ${c.pedIda?'checked':''}> Passo na ida</label><label class="chk"><input type="checkbox" id="ped-volta" ${c.pedVolta?'checked':''}> Passo na volta</label><span class="spacer"></span><button class="btn pri" data-act="pedsave">Salvar pedágio</button></div>
     <p class="note calc">Por dia: ${passagensDia(HOJE)} × ${brl(pedagioEm(HOJE))} = <b>${brl(passagensDia(HOJE)*pedagioEm(HOJE))}</b> · por semana (5 dias): <b>${brl(5*passagensDia(HOJE)*pedagioEm(HOJE))}</b>. Se o valor mudar, só conta daqui pra frente: as semanas do histórico continuam com o valor antigo.</p>
     ${(c.pedHist||[]).length>1?`<details><summary class="note" style="cursor:pointer">Valores anteriores</summary><div class="hist">${c.pedHist.slice().sort((a,b)=>b.desde.localeCompare(a.desde)).map(e=>`<div>${e.desde<'2001'?'desde o início':'desde '+ddmm(fromIso(e.desde))+'/'+e.desde.slice(0,4)}: ${brl(e.valor)}</div>`).join('')}</div></details>`:''}</div>
+  <div class="card"><h2 style="font-size:1.2rem;margin-bottom:6px">Ônibus e carona</h2>
+    <p class="note" style="margin:0 0 8px">Nos dias em que você não vai de carro, escolha em cada trecho do dia "🚌 Ônibus" ou "🙋 Carona" (em "Como fui"). Esses trechos ficam sem passageiros, gasolina e pedágio, e o valor abaixo entra como gasto. Dá para mudar o valor no próprio dia.</p>
+    <div class="form"><label>Passagem de ônibus (R$)<input type="number" step="0.01" min="0" inputmode="decimal" id="oc-onibus" value="${c.onibusValor||''}" placeholder="0,00"></label><label>Quando volto de carona (R$)<input type="number" step="0.01" min="0" inputmode="decimal" id="oc-carona" value="${c.caronaValor||''}" placeholder="0,00"></label></div>
+    <div class="row" style="margin-top:8px"><span class="spacer"></span><button class="btn pri" data-act="ocsave">Salvar valores</button></div></div>
   <div class="card"><h2 style="font-size:1.2rem;margin-bottom:10px">Carro e gasolina</h2><div class="form">
     <label>Preço padrão do litro (R$)<input type="number" step="0.01" id="cf-gasolina" value="${c.gasolina}"></label>
     <label>Consumo padrão (km/l)<input type="number" step="0.1" id="cf-consumo" value="${c.consumo}"></label>
@@ -568,7 +592,7 @@ function telaGasolina(){
   const nomeMes=new Date(y,m-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
   const abs=S.abastecimentos.filter(a=>a.data>=ini&&a.data<=fim).sort((a,b)=>b.data.localeCompare(a.data));
   const gasto=abs.reduce((s,a)=>s+a.valor,0),litros=abs.reduce((s,a)=>s+(a.litros||0),0);
-  let gerado=0,custoEst=0,diasRodados=0,pedMes=0,passMes=0;Object.keys(S.viagens).forEach(k=>{if(k<ini||k>fim)return;const v=S.viagens[k];if(v.off)return;gerado+=receitaDia(v);custoEst+=custoDiaK(k);pedMes+=pedDia(k);passMes+=passagensDia(k);diasRodados++});
+  let gerado=0,custoEst=0,diasRodados=0,pedMes=0,passMes=0,outMes=0;Object.keys(S.viagens).forEach(k=>{if(k<ini||k>fim)return;const v=S.viagens[k];if(v.off)return;gerado+=receitaDia(v);custoEst+=custoDiaK(k);pedMes+=pedDia(k);passMes+=passagensDia(k);outMes+=outrosDia(k);diasRodados++});
   const recebido=S.pagamentos.filter(p=>p.data>=ini&&p.data<=fim).reduce((s,p)=>s+p.valor,0);
   const ci=mediaConsumo('consIda'),cv=mediaConsumo('consVolta'),cg=mediaConsumo();
   const ult=S.abastecimentos.slice().sort((a,b)=>b.data.localeCompare(a.data))[0];
@@ -585,8 +609,8 @@ function telaGasolina(){
     <div class="stat"><div class="lbl">Abasteci</div><div class="val">${brl(gasto)}</div></div>
     <div class="stat"><div class="lbl">Caronas do mês</div><div class="val">${brl(gerado)}</div></div>
     <div class="stat"><div class="lbl">Já recebi</div><div class="val">${brl(recebido)}</div></div>
-    <div class="stat"><div class="lbl">Sobra do mês</div><div class="val ${gerado-gasto-pedMes>=0?'pos':'neg'}">${brl(gerado-gasto-pedMes)}</div></div></div>
-    <p class="note calc" style="margin:8px 0 0">${litros?`${litros.toFixed(1).replace('.',',')} litros, média ${brl(gasto/litros)} o litro. `:''}Pedágio do mês: ${brl(pedMes)} (${passMes} passagens). Sobra = caronas − abastecido − pedágio. Gasolina estimada pelos ${diasRodados} dia(s) rodados: ${brl(custoEst)}. O valor abastecido no mês nem sempre bate com o gasto, porque o tanque pode ficar cheio para o mês seguinte.</p></div>
+    <div class="stat"><div class="lbl">Sobra do mês</div><div class="val ${gerado-gasto-pedMes-outMes>=0?'pos':'neg'}">${brl(gerado-gasto-pedMes-outMes)}</div></div></div>
+    <p class="note calc" style="margin:8px 0 0">${litros?`${litros.toFixed(1).replace('.',',')} litros, média ${brl(gasto/litros)} o litro. `:''}Pedágio do mês: ${brl(pedMes)} (${passMes} passagens).${outMes?` Ônibus/carona: ${brl(outMes)}.`:''} Sobra = caronas − abastecido − pedágio${outMes?' − ônibus/carona':''}. Gasolina estimada pelos ${diasRodados} dia(s) rodados: ${brl(custoEst)}. O valor abastecido no mês nem sempre bate com o gasto, porque o tanque pode ficar cheio para o mês seguinte.</p></div>
 
   <div class="card relcard"><div><b>Relatório do mês</b><div class="note">Gasolina, caronas, quem pagou e quem deve, dia a dia. Abre no Excel.</div></div><button class="btn pri" data-act="relxml">Baixar relatório (.xml)</button></div>
   <div class="card"><h2 style="font-size:1.2rem;margin-bottom:8px">Consumo real do Polo</h2><div class="stats" style="grid-template-columns:repeat(3,1fr)">
@@ -606,14 +630,14 @@ function paraXML(){
   const c=S.config,L=[];
   L.push('<?xml version="1.0" encoding="UTF-8"?>');
   L.push(`<caronas versao="1" exportado="${new Date().toISOString()}">`);
-  L.push(`  <config${attrs(c,['kmTrecho','consumo','gasolina','vagas','horaIda','horaVolta','mostrarVagas','pedagio','pedIda','pedVolta'])}>`);
+  L.push(`  <config${attrs(c,['kmTrecho','consumo','gasolina','vagas','horaIda','horaVolta','mostrarVagas','pedagio','pedIda','pedVolta','onibusValor','caronaValor'])}>`);
   L.push(`    <pedagio_historico>${(c.pedHist||[]).map(e=>`<valor desde="${e.desde}" valor="${e.valor}"/>`).join('')}</pedagio_historico>`);
   L.push(`    <rodape>${xa(c.rodape)}</rodape>`);
   L.push('  </config>');
   L.push('  <tarifas>');S.tarifas.forEach(t=>L.push(`    <tarifa${attrs(t,['id','nome','valorDia','valorTrecho'])}/>`));L.push('  </tarifas>');
   L.push('  <pessoas>');S.pessoas.forEach(p=>L.push(`    <pessoa${attrs(p,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho'])}/>`));L.push('  </pessoas>');
   L.push('  <viagens>');Object.keys(S.viagens).sort().forEach(k=>{const v=S.viagens[k];
-    L.push(`    <dia data="${k}"${v.off?' off="true"':''}${attrs(v,['consIda','consVolta','kmIda','kmVolta'])}>`);
+    L.push(`    <dia data="${k}"${v.off?' off="true"':''}${attrs(v,['consIda','consVolta','kmIda','kmVolta','modoIda','modoVolta','gastoIda','gastoVolta'])}>`);
     ['ida','volta'].forEach(leg=>L.push(`      <${leg}>${(v[leg]||[]).map(id=>`<p id="${xa(id)}"/>`).join('')}</${leg}>`));
     if(v.obs)L.push(`      <obs>${xa(v.obs)}</obs>`);
     L.push('    </dia>')});L.push('  </viagens>');
@@ -629,13 +653,13 @@ function deXML(txt){
   const at=(el,keys,nums)=>{const o={};keys.forEach(k=>{const v=el.getAttribute(k);if(v===null)return;o[k]=nums.includes(k)?num(v):v==='true'?true:v==='false'?false:v});return o};
   const r=doc.documentElement,o={};
   const cf=r.querySelector('config');
-  o.config=cf?at(cf,['kmTrecho','consumo','gasolina','vagas','horaIda','horaVolta','mostrarVagas','pedagio','pedIda','pedVolta'],['kmTrecho','consumo','gasolina','vagas','pedagio']):{};
+  o.config=cf?at(cf,['kmTrecho','consumo','gasolina','vagas','horaIda','horaVolta','mostrarVagas','pedagio','pedIda','pedVolta','onibusValor','caronaValor'],['kmTrecho','consumo','gasolina','vagas','pedagio','onibusValor','caronaValor']):{};
   if(cf){const ph=[...cf.querySelectorAll('pedagio_historico > valor')].map(e=>({desde:e.getAttribute('desde'),valor:+e.getAttribute('valor')}));if(ph.length)o.config.pedHist=ph}
   const rod=cf&&cf.querySelector('rodape');if(rod)o.config.rodape=rod.textContent;
   o.tarifas=[...r.querySelectorAll('tarifas > tarifa')].map(e=>at(e,['id','nome','valorDia','valorTrecho'],['valorDia','valorTrecho']));
   o.pessoas=[...r.querySelectorAll('pessoas > pessoa')].map(e=>at(e,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho'],['valorDia','valorTrecho']));
   o.viagens={};r.querySelectorAll('viagens > dia').forEach(e=>{const v={ida:[...e.querySelectorAll('ida > p')].map(p=>p.getAttribute('id')),volta:[...e.querySelectorAll('volta > p')].map(p=>p.getAttribute('id')),obs:e.querySelector('obs')?.textContent||'',off:e.getAttribute('off')==='true'};
-    ['consIda','consVolta','kmIda','kmVolta'].forEach(f=>{const n=num(e.getAttribute(f));if(n>0)v[f]=n});o.viagens[e.getAttribute('data')]=v});
+    ['consIda','consVolta','kmIda','kmVolta'].forEach(f=>{const n=num(e.getAttribute(f));if(n>0)v[f]=n});['modoIda','modoVolta'].forEach(f=>{const m=e.getAttribute(f);if(m==='onibus'||m==='carona')v[f]=m});['gastoIda','gastoVolta'].forEach(f=>{const g=e.getAttribute(f);if(g!==null&&g!==''&&!isNaN(+g))v[f]=+g});o.viagens[e.getAttribute('data')]=v});
   o.pagamentos=[...r.querySelectorAll('pagamentos > pagamento')].map(e=>Object.assign(at(e,['id','pid','data','valor','obs'],['valor']),{dias:[...e.querySelectorAll('d')].map(d=>d.textContent)}));
   o.abastecimentos=[...r.querySelectorAll('abastecimentos > abastecimento')].map(e=>at(e,['id','data','valor','preco','litros','km'],['valor','preco','litros','km']));
   return o;
@@ -649,9 +673,9 @@ function relatorioXML(m){
   const [y,mm]=m.split('-').map(Number);const ini=m+'-01',fim=iso(new Date(y,mm,0));const dentro=k=>k>=ini&&k<=fim;
   const L=['<?xml version="1.0" encoding="UTF-8"?>',`<relatorio_mensal mes="${m}" gerado="${new Date().toISOString()}" empresa="NFC Soluções em Tecnologia e Infraestrutura">`];
   const ks=Object.keys(S.viagens).filter(dentro).sort();
-  let ger=0,est=0,dias=0,kmMes=0,pedM=0,passM=0;const cI=[],cV=[];
-  const linhasDia=ks.map(k=>{const v=S.viagens[k];const rec=receitaDia(v),cu=custoDiaK(k);if(!v.off){ger+=rec;est+=cu;dias++;kmMes+=kmDia(k);pedM+=pedDia(k);passM+=passagensDia(k);if(v.consIda>0)cI.push(+v.consIda);if(v.consVolta>0)cV.push(+v.consVolta)}
-    return `    <dia data="${k}" dia_semana="${DIAS_CURTO[fromIso(k).getDay()]}" nao_fui="${v.off?'sim':'nao'}" ida="${xa(v.ida.map(nome).join(', '))}" volta="${xa(v.volta.map(nome).join(', '))}" passageiros_ida="${v.ida.length}" passageiros_volta="${v.volta.length}" caronas="${n2(rec)}" gasolina_estimada="${n2(cu)}" pedagio="${n2(pedDia(k))}" resultado="${n2(rec-cu-pedDia(k))}" consumo_ida="${v.consIda||''}" consumo_volta="${v.consVolta||''}" km_ida="${v.off?'':kmT(k,'ida')}" km_volta="${v.off?'':kmT(k,'volta')}" preco_litro="${n2(precoEm(k))}"${v.obs?` obs="${xa(v.obs)}"`:''}/>`});
+  let ger=0,est=0,dias=0,kmMes=0,pedM=0,passM=0,outM=0;const cI=[],cV=[];
+  const linhasDia=ks.map(k=>{const v=S.viagens[k];const rec=receitaDia(v),cu=custoDiaK(k);if(!v.off){ger+=rec;est+=cu;dias++;kmMes+=kmDia(k);pedM+=pedDia(k);passM+=passagensDia(k);outM+=outrosDia(k);if(v.consIda>0)cI.push(+v.consIda);if(v.consVolta>0)cV.push(+v.consVolta)}
+    return `    <dia data="${k}" dia_semana="${DIAS_CURTO[fromIso(k).getDay()]}" nao_fui="${v.off?'sim':'nao'}" ida="${xa(v.ida.map(nome).join(', '))}" volta="${xa(v.volta.map(nome).join(', '))}" passageiros_ida="${v.ida.length}" passageiros_volta="${v.volta.length}" caronas="${n2(rec)}" gasolina_estimada="${n2(cu)}" pedagio="${n2(pedDia(k))}" ida_de="${v.off?'':modoT(v,'ida')}" volta_de="${v.off?'':modoT(v,'volta')}" gasto_onibus_carona="${n2(outrosDia(k))}" resultado="${n2(rec-cu-pedDia(k)-outrosDia(k))}" consumo_ida="${v.consIda||''}" consumo_volta="${v.consVolta||''}" km_ida="${v.off?'':kmT(k,'ida')}" km_volta="${v.off?'':kmT(k,'volta')}" preco_litro="${n2(precoEm(k))}"${v.obs?` obs="${xa(v.obs)}"`:''}/>`});
   const abs=S.abastecimentos.filter(a=>dentro(a.data)).sort((a,b)=>a.data.localeCompare(b.data));
   const gasto=abs.reduce((s,a)=>s+a.valor,0),lit=abs.reduce((s,a)=>s+(a.litros||0),0);
   const pags=S.pagamentos.filter(p=>dentro(p.data)).sort((a,b)=>a.data.localeCompare(b.data));
@@ -663,7 +687,7 @@ function relatorioXML(m){
     const val=ds.reduce((s,d)=>s+d.valor,0),pg=ds.reduce((s,d)=>s+d.pago,0),ab=ds.filter(d=>d.k<=HOJE).reduce((s,d)=>s+d.valor-d.pago,0),av=ds.filter(d=>d.k>HOJE).reduce((s,d)=>s+d.valor-d.pago,0);
     aberto+=ab;aVencer+=av;
     linhasP.push(`    <passageiro nome="${xa(p.nome)}" tipo="${p.fixo?'fixo':'avulso'}" paga="${p.modo==='semana'?'por semana':'por dia'}" valor_ida_volta="${n2(valores(p.id).d)}" valor_trecho="${n2(valores(p.id).t)}" dias="${ds.length}" trechos="${tr}" total="${n2(val)}" pago="${n2(pg)}" em_aberto="${n2(ab)}" a_vencer="${n2(av)}"/>`)});
-  L.push(`  <resumo caronas_do_mes="${n2(ger)}" recebido_no_mes="${n2(rec)}" em_aberto="${n2(aberto)}" a_vencer="${n2(aVencer)}" gasolina_abastecida="${n2(gasto)}" litros_abastecidos="${lit.toFixed(2)}" preco_medio_litro="${lit?n2(gasto/lit):''}" dias_rodados="${dias}" km_rodados="${(Math.round(kmMes*10)/10)}" gasolina_estimada_dos_dias="${n2(est)}" consumo_medio_ida="${cI.length?harm(cI).toFixed(1):''}" consumo_medio_volta="${cV.length?harm(cV).toFixed(1):''}" pedagio_do_mes="${n2(pedM)}" passagens_pedagio="${passM}" resultado_caronas_menos_abastecido="${n2(ger-gasto)}" resultado_caronas_menos_abastecido_e_pedagio="${n2(ger-gasto-pedM)}" resultado_caronas_menos_estimado_e_pedagio="${n2(ger-est-pedM)}"/>`);
+  L.push(`  <resumo caronas_do_mes="${n2(ger)}" recebido_no_mes="${n2(rec)}" em_aberto="${n2(aberto)}" a_vencer="${n2(aVencer)}" gasolina_abastecida="${n2(gasto)}" litros_abastecidos="${lit.toFixed(2)}" preco_medio_litro="${lit?n2(gasto/lit):''}" dias_rodados="${dias}" km_rodados="${(Math.round(kmMes*10)/10)}" gasolina_estimada_dos_dias="${n2(est)}" consumo_medio_ida="${cI.length?harm(cI).toFixed(1):''}" consumo_medio_volta="${cV.length?harm(cV).toFixed(1):''}" pedagio_do_mes="${n2(pedM)}" passagens_pedagio="${passM}" resultado_caronas_menos_abastecido="${n2(ger-gasto)}" resultado_caronas_menos_abastecido_e_pedagio="${n2(ger-gasto-pedM)}" resultado_caronas_menos_estimado_e_pedagio="${n2(ger-est-pedM)}" gasto_onibus_carona="${n2(outM)}" resultado_final="${n2(ger-gasto-pedM-outM)}"/>`);
   L.push('  <passageiros>',...linhasP,'  </passageiros>');
   L.push('  <dias>',...linhasDia,'  </dias>');
   L.push('  <abastecimentos>',...abs.map(a=>`    <abastecimento data="${a.data}" valor="${n2(a.valor)}" preco_litro="${n2(a.preco)}" litros="${(a.litros||0).toFixed(2)}" km="${a.km||''}"/>`),'  </abastecimentos>');
@@ -676,9 +700,9 @@ function telaHistorico(){
   const sems=[...new Set(Object.keys(S.viagens).map(k=>iso(mondayOf(fromIso(k)))))].filter(w=>w<atual).sort().reverse();
   let h=`<div class="days"><div class="card"><h2 style="font-size:1.1rem">Semanas anteriores</h2><p class="note" style="margin:4px 0 0">${sems.length?sems.length+' semana(s) guardada(s). A aba Semana mostra só a semana atual.':'Ainda não há semanas anteriores. Elas aparecem aqui sozinhas quando a semana virar.'}</p></div>`;
   sems.forEach(w=>{const seg=fromIso(w),ks=semanaKeys(seg);let rec=0,cu=0;const ps=new Set();
-    let pd=0;ks.forEach(k=>{const v=S.viagens[k];if(!v||v.off)return;rec+=receitaDia(v);cu+=custoDiaK(k);pd+=pedDia(k);v.ida.concat(v.volta).forEach(id=>ps.add(id))});
+    let pd=0,ot=0;ks.forEach(k=>{const v=S.viagens[k];if(!v||v.off)return;rec+=receitaDia(v);cu+=custoDiaK(k);pd+=pedDia(k);ot+=outrosDia(k);v.ida.concat(v.volta).forEach(id=>ps.add(id))});
     h+=`<div class="person"><div class="ph"><h3>${ddmm(seg)} a ${ddmm(addDays(seg,4))}</h3><span class="spacer"></span><button class="btn sm" data-act="editsem" data-w="${w}">Corrigir</button></div>
-    <div class="nums n4"><div>Caronas<b>${brl(rec)}</b></div><div>Gasolina<b>${brl(cu)}</b></div><div>Pedágio<b>${brl(pd)}</b></div><div>Sobra<b class="${rec-cu-pd>=0?'pos':'neg'}">${brl(rec-cu-pd)}</b></div></div>
+    <div class="nums n4"><div>Caronas<b>${brl(rec)}</b></div><div>Gasolina<b>${brl(cu)}</b></div><div>Pedágio<b>${brl(pd)}</b></div><div>Sobra<b class="${rec-cu-pd-ot>=0?'pos':'neg'}">${brl(rec-cu-pd-ot)}</b></div></div>${ot?`<div class="note">Inclui ${brl(ot)} de ônibus/carona.</div>`:''}
     <details><summary class="note" style="cursor:pointer">${ps.size} passageiro(s) · ver dias</summary><div class="hist">${ks.map((k,i)=>{const v=S.viagens[k];if(!v)return '';return `<div>${DIAS[i]} ${ddmm(fromIso(k))}: ${v.off?'não fui':`ida ${esc(v.ida.map(nome).join(', ')||'—')} · volta ${esc(v.volta.map(nome).join(', ')||'—')}`}</div>`}).join('')}</div></details></div>`});
   return h+'</div>';
 }
@@ -715,6 +739,7 @@ document.addEventListener('click',e=>{
     else Object.assign(pessoa(id),{nome:n,modo:m,fixo:f},extra);editOpen=null;salvar();render()}
   else if(a==='pdel'){editOpen='del-'+id;render()}
   else if(a==='pdelok'){S.pessoas=S.pessoas.filter(p=>p.id!==id);S.pagamentos=S.pagamentos.filter(x=>x.pid!==id);for(const k in S.viagens){const v=S.viagens[k];v.ida=v.ida.filter(x=>x!==id);v.volta=v.volta.filter(x=>x!==id)}editOpen=null;salvar();render();toast('Excluído')}
+  else if(a==='ocsave'){const o=parseFloat(String(document.getElementById('oc-onibus').value).replace(',','.')),c2=parseFloat(String(document.getElementById('oc-carona').value).replace(',','.'));S.config.onibusValor=o>=0?Math.round(o*100)/100:0;S.config.caronaValor=c2>=0?Math.round(c2*100)/100:0;salvar();render();toast('Valores salvos')}
   else if(a==='pedsave'){const v=parseFloat(String(document.getElementById('ped-valor').value).replace(',','.'));if(!(v>=0)){toast('Digite o valor do pedágio');return}
     const c=S.config;c.pedIda=document.getElementById('ped-ida').checked;c.pedVolta=document.getElementById('ped-volta').checked;
     if(Math.abs(v-pedagioEm(HOJE))>0.001){c.pedHist=(c.pedHist||[]).filter(e=>e.desde!==HOJE);c.pedHist.push({desde:HOJE,valor:Math.round(v*100)/100})}c.pedagio=Math.round(v*100)/100;
@@ -734,7 +759,7 @@ document.addEventListener('click',e=>{
   else if(a==='bkfile'){const b=new Blob([paraXML()],{type:'application/xml'});const u=URL.createObjectURL(b);const l=document.createElement('a');l.href=u;l.download='caronas-backup-'+HOJE+'.xml';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),2000);try{localStorage.setItem('caronas-ultimo-backup',HOJE)}catch(e){}}
   else if(a==='editsem'){semana=fromIso(t.dataset.w);tab='semana';try{history.replaceState(null,'','#semana')}catch(e){}render();scrollTo(0,0)}
   else if(a==='semhoje'){semana=mondayOf(new Date());render()}
-  else if(a==='copfix'){const at=mondayOf(new Date());let n=0;for(let i=0;i<5;i++){const k=iso(addDays(semana,i)),d=dia(k);if(d.off)continue;const sv=S.viagens[iso(addDays(at,i))];if(!sv||sv.off)continue;['ida','volta'].forEach(leg=>sv[leg].filter(id=>pessoa(id)&&pessoa(id).fixo&&!d[leg].includes(id)).forEach(id=>{if(d[leg].length<S.config.vagas){d[leg].push(id);n++}}))}salvar();render();toast(n?n+' vaga(s) de fixos copiada(s)':'Os fixos já estão todos marcados')}
+  else if(a==='copfix'){const at=mondayOf(new Date());let n=0;for(let i=0;i<5;i++){const k=iso(addDays(semana,i)),d=dia(k);if(d.off)continue;const sv=S.viagens[iso(addDays(at,i))];if(!sv||sv.off)continue;['ida','volta'].forEach(leg=>(deCarro(sv,leg)&&deCarro(d,leg)?sv[leg]:[]).filter(id=>pessoa(id)&&pessoa(id).fixo&&!d[leg].includes(id)).forEach(id=>{if(d[leg].length<S.config.vagas){d[leg].push(id);n++}}))}salvar();render();toast(n?n+' vaga(s) de fixos copiada(s)':'Os fixos já estão todos marcados')}
   else if(a==='semprox'){semana=addDays(mondayOf(new Date()),7);render()}
   else if(a==='wsem'){wSem=addDays(mondayOf(new Date()),+t.dataset.d);importPreview=null;copyText=null;render()}
   else if(a==='relxml'){baixar('caronas-relatorio-'+mes+'.xml',relatorioXML(mes))}
@@ -750,6 +775,8 @@ document.addEventListener('change',e=>{
     d[leg].push(v);salvar();render()}
   else if(a==='ftsel'){const b=document.getElementById('fp-'+t.dataset.id);if(b)b.hidden=t.value!=='proprio'}
   else if(a==='pdia'){const id=t.dataset.id;const tot=[...document.querySelectorAll(`input[data-act="pdia"][data-id="${id}"]:checked`)].reduce((s,c)=>s+parseFloat(c.dataset.v),0);const f=document.getElementById('pv-'+id);if(f)f.value=tot.toFixed(2)}
+  else if(a==='modo'){const d=dia(t.dataset.k),f=t.dataset.leg==='ida'?'modoIda':'modoVolta';if(t.value==='carro')delete d[f];else d[f]=t.value;salvar();render();toast(t.value==='carro'?'Trecho de carro':t.value==='onibus'?'Trecho de ônibus: sem passageiros, gasolina e pedágio':'Trecho de carona: sem passageiros, gasolina e pedágio')}
+  else if(a==='gasto'){const n=parseFloat(String(t.value).replace(',','.'));const d=dia(t.dataset.k);if(n>=0)d[t.dataset.f]=Math.round(n*100)/100;else delete d[t.dataset.f];salvar();render()}
   else if(a==='cons'){const n=parseFloat(t.value);const d=dia(t.dataset.k);if(n>0)d[t.dataset.f]=Math.round(n*10)/10;else delete d[t.dataset.f];salvar();render()}
   else if(a==='mvagas'){S.config.mostrarVagas=t.checked;salvar();render()}
   else if(a==='off'){dia(t.dataset.k).off=t.checked;salvar();render()}
