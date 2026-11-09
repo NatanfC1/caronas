@@ -164,6 +164,12 @@ body.noscroll{overflow:hidden}
 .pk-item:hover,.pk-item:focus-visible{background:var(--chip)}
 .pk-tags{display:flex;gap:4px;flex:none}.pk-tags i{font-style:normal;font-size:.66rem;font-weight:600;color:var(--chip-ink);background:var(--chip);padding:1px 7px;border-radius:99px}
 .pk-novo .pk-name{color:var(--accent)}
+.pk-row{display:flex;align-items:center;border-bottom:1px solid var(--line)}
+.pk-row .pk-item{border-bottom:0;flex:1;min-width:0}
+.star{border:0;background:transparent;color:var(--muted);font-size:1.25rem;line-height:1;padding:8px 10px;cursor:pointer;border-radius:10px;flex:none}
+.star.on{color:#F5B301}
+.star:hover{background:var(--chip)}
+.person .ph .star{padding:2px 4px;margin-left:-4px;font-size:1.2rem}
 .pk-vazio{padding:12px 8px}
 .pfilter{display:flex;flex-direction:column;gap:8px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
@@ -461,16 +467,17 @@ function freq(){const c={};const lim=iso(addDays(new Date(),-60));for(const k in
 function pickList(){
   if(!pick)return '';const v=S.viagens[pick.k]||{ida:[],volta:[]};const ja=pick.kind==='seat'?(v[pick.leg]||[]):[];
   const q=norm(pq);const base=S.pessoas.filter(p=>!ja.includes(p.id));
-  const item=p=>`<button class="pk-item" data-act="pkadd" data-id="${p.id}"><span class="pk-name">${esc(p.nome)}</span><span class="pk-tags">${p.fixo?'<i>fixo</i>':''}${p.modo==='semana'?'<i>semana</i>':''}${p.tarifa==='proprio'?`<i>${brl(+p.valorTrecho||0)}</i>`:''}</span></button>`;
+  const item=p=>`<div class="pk-row"><button class="pk-item" data-act="pkadd" data-id="${p.id}"><span class="pk-name">${esc(p.nome)}</span><span class="pk-tags">${p.fixo?'<i>fixo</i>':''}${p.modo==='semana'?'<i>semana</i>':''}${p.tarifa==='proprio'?`<i>${brl(+p.valorTrecho||0)}</i>`:''}</span></button><button class="star ${p.fav?'on':''}" data-act="fav" data-id="${p.id}" aria-pressed="${!!p.fav}" aria-label="${p.fav?'Tirar dos favoritos':'Favoritar'} ${esc(p.nome)}">${p.fav?'★':'☆'}</button></div>`;
   if(q){const r=base.filter(p=>norm(p.nome).includes(q)).sort((a,b)=>norm(a.nome).indexOf(q)-norm(b.nome).indexOf(q)||byNome(a,b));
     const exato=S.pessoas.some(p=>norm(p.nome)===q);
     return (r.length?r.map(item).join(''):'<p class="note pk-vazio">Ninguém com esse nome.</p>')+(exato?'':`<button class="pk-item pk-novo" data-act="pknovo"><span class="pk-name">+ Cadastrar “${esc(pq.trim())}”</span><span class="pk-tags"><i>novo avulso</i></span></button>`)}
-  const f=freq();const fx=base.filter(p=>p.fixo).sort(byNome);
-  const fr=base.filter(p=>!p.fixo&&f[p.id]).sort((a,b)=>f[b.id]-f[a.id]||byNome(a,b)).slice(0,6);
-  let h='';if(fx.length)h+='<div class="pk-sec">Fixos</div>'+fx.map(item).join('');
+  const f=freq();const fv=base.filter(p=>p.fav).sort(byNome);const fx=base.filter(p=>p.fixo&&!p.fav).sort(byNome);
+  const fr=base.filter(p=>!p.fixo&&!p.fav&&f[p.id]).sort((a,b)=>f[b.id]-f[a.id]||byNome(a,b)).slice(0,6);
+  let h='';if(fv.length)h+='<div class="pk-sec">⭐ Favoritos</div>'+fv.map(item).join('');
+  if(fx.length)h+='<div class="pk-sec">Fixos</div>'+fx.map(item).join('');
   if(fr.length)h+='<div class="pk-sec">Mais frequentes</div>'+fr.map(item).join('');
   h+='<div class="pk-sec">Todos de A a Z</div>';let L='';
-  base.filter(p=>!p.fixo).sort(byNome).forEach(p=>{const l=(norm(p.nome)[0]||'#').toUpperCase();if(l!==L){L=l;h+=`<div class="pk-l">${l}</div>`}h+=item(p)});
+  base.filter(p=>!p.fixo&&!p.fav).sort(byNome).forEach(p=>{const l=(norm(p.nome)[0]||'#').toUpperCase();if(l!==L){L=l;h+=`<div class="pk-l">${l}</div>`}h+=item(p)});
   return h}
 function renderSheet(){const el=document.getElementById('sheet');if(!el)return;document.body.classList.toggle('noscroll',!!pick);
   if(!pick){el.innerHTML='';el.hidden=true;return}
@@ -568,9 +575,9 @@ function telaPessoas(){
     <p class="note" style="margin:8px 0 0">Cada dia de carona tem sua situação: pago, parcial, em aberto ou a vencer. Ao receber, marque quais dias a pessoa está pagando, inclusive dias que ainda vão acontecer.</p></div>
   <details class="tool" ${editOpen==='novo'?'open':''}><summary>Cadastrar passageiro</summary>${formPessoa(null)}</details>`;
   if(!lista.length)h+=`<div class="card empty">Ninguém cadastrado ainda.</div>`;
-  const nfil={todos:lista.length,devendo:lista.filter(x=>x.e.aberto>0.01).length,fixos:lista.filter(x=>x.p.fixo).length,avulsos:lista.filter(x=>!x.p.fixo).length};
-  const qb=norm(pBusca);const vis=lista.filter(x=>(pFiltro==='todos'||(pFiltro==='devendo'&&x.e.aberto>0.01)||(pFiltro==='fixos'&&x.p.fixo)||(pFiltro==='avulsos'&&!x.p.fixo))&&(!qb||norm(x.p.nome).includes(qb)));
-  if(lista.length)h+=`<div class="pfilter"><input type="search" id="p-q" placeholder="Buscar passageiro (${lista.length})" value="${esc(pBusca)}" autocomplete="off"><div class="chips">${[['todos','Todos'],['devendo','Devendo'],['fixos','Fixos'],['avulsos','Avulsos']].map(([val,lab])=>`<button class="chip ${pFiltro===val?'on':''}" data-act="pfil" data-v="${val}" aria-pressed="${pFiltro===val}">${lab}<small>${nfil[val]}</small></button>`).join('')}</div></div>`;
+  const nfil={favoritos:lista.filter(x=>x.p.fav).length,todos:lista.length,devendo:lista.filter(x=>x.e.aberto>0.01).length,fixos:lista.filter(x=>x.p.fixo).length,avulsos:lista.filter(x=>!x.p.fixo).length};
+  const qb=norm(pBusca);const vis=lista.filter(x=>(pFiltro==='todos'||(pFiltro==='favoritos'&&x.p.fav)||(pFiltro==='devendo'&&x.e.aberto>0.01)||(pFiltro==='fixos'&&x.p.fixo)||(pFiltro==='avulsos'&&!x.p.fixo))&&(!qb||norm(x.p.nome).includes(qb)));
+  if(lista.length)h+=`<div class="pfilter"><input type="search" id="p-q" placeholder="Buscar passageiro (${lista.length})" value="${esc(pBusca)}" autocomplete="off"><div class="chips">${[['todos','Todos'],['favoritos','⭐ Favoritos'],['devendo','Devendo'],['fixos','Fixos'],['avulsos','Avulsos']].map(([val,lab])=>`<button class="chip ${pFiltro===val?'on':''}" data-act="pfil" data-v="${val}" aria-pressed="${pFiltro===val}">${lab}<small>${nfil[val]}</small></button>`).join('')}</div></div>`;
   if(lista.length&&!vis.length)h+=`<div class="card empty">Ninguém encontrado${pBusca?` para “${esc(pBusca)}”`:''}.</div>`;
   vis.forEach(({p,e,sem})=>{
     let status='';
@@ -580,7 +587,7 @@ function telaPessoas(){
     if(e.credito>0.01)status+=`<span class="pill ok">crédito ${brl(e.credito)}</span>`;
     const pags=S.pagamentos.filter(x=>x.pid===p.id).sort((a,b)=>b.data.localeCompare(a.data));
     const abertos=e.dias.filter(d=>d.valor-d.pago>0.009);
-    h+=`<div class="person"><div class="ph"><h3>${esc(p.nome)}</h3><span class="pill">${p.modo==='semana'?'paga por semana':'paga por dia'}</span><span class="pill" title="ida e volta / um trecho">${esc(rotuloTarifa(p))}</span>${p.fixo?'<span class="pill">fixo</span>':'<span class="pill">avulso</span>'}${status}</div>
+    h+=`<div class="person"><div class="ph"><button class="star ${p.fav?'on':''}" data-act="fav" data-id="${p.id}" aria-pressed="${!!p.fav}" aria-label="${p.fav?'Tirar dos favoritos':'Favoritar'} ${esc(p.nome)}">${p.fav?'★':'☆'}</button><h3>${esc(p.nome)}</h3><span class="pill">${p.modo==='semana'?'paga por semana':'paga por dia'}</span><span class="pill" title="ida e volta / um trecho">${esc(rotuloTarifa(p))}</span>${p.fixo?'<span class="pill">fixo</span>':'<span class="pill">avulso</span>'}${status}</div>
       <div class="nums"><div>Esta semana<b>${brl(sem)}</b></div><div>Em aberto<b class="${e.aberto>0.01?'neg':'pos'}">${brl(e.aberto)}</b></div><div>A vencer<b>${brl(e.aVencer)}</b></div></div>
       <div class="row"><button class="btn sm pri" data-act="payopen" data-id="${p.id}">Recebi</button><button class="btn sm" data-act="cobrar" data-id="${p.id}">Copiar cobrança</button><button class="btn sm" data-act="editopen" data-id="${p.id}">Editar</button></div>
       ${payOpen===p.id?formPagamento(p,abertos):''}
@@ -715,7 +722,7 @@ function paraXML(){
   L.push(`    <rodape>${xa(c.rodape)}</rodape>`);
   L.push('  </config>');
   L.push('  <tarifas>');S.tarifas.forEach(t=>L.push(`    <tarifa${attrs(t,['id','nome','valorDia','valorTrecho'])}/>`));L.push('  </tarifas>');
-  L.push('  <pessoas>');S.pessoas.forEach(p=>L.push(`    <pessoa${attrs(p,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho'])}/>`));L.push('  </pessoas>');
+  L.push('  <pessoas>');S.pessoas.forEach(p=>L.push(`    <pessoa${attrs(p,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho','fav'])}/>`));L.push('  </pessoas>');
   L.push('  <viagens>');Object.keys(S.viagens).sort().forEach(k=>{const v=S.viagens[k];
     L.push(`    <dia data="${k}"${v.off?' off="true"':''}${attrs(v,['consIda','consVolta','kmIda','kmVolta','modoIda','modoVolta','gastoIda','gastoVolta'])}>`);
     ['ida','volta'].forEach(leg=>L.push(`      <${leg}>${(v[leg]||[]).map(id=>`<p id="${xa(id)}"/>`).join('')}</${leg}>`));
@@ -738,7 +745,7 @@ function deXML(txt){
   if(cf){const ph=[...cf.querySelectorAll('pedagio_historico > valor')].map(e=>({desde:e.getAttribute('desde'),valor:+e.getAttribute('valor')}));if(ph.length)o.config.pedHist=ph}
   const rod=cf&&cf.querySelector('rodape');if(rod)o.config.rodape=rod.textContent;
   o.tarifas=[...r.querySelectorAll('tarifas > tarifa')].map(e=>at(e,['id','nome','valorDia','valorTrecho'],['valorDia','valorTrecho']));
-  o.pessoas=[...r.querySelectorAll('pessoas > pessoa')].map(e=>at(e,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho'],['valorDia','valorTrecho']));
+  o.pessoas=[...r.querySelectorAll('pessoas > pessoa')].map(e=>at(e,['id','nome','modo','fixo','tarifa','valorDia','valorTrecho','fav'],['valorDia','valorTrecho']));
   o.viagens={};r.querySelectorAll('viagens > dia').forEach(e=>{const v={ida:[...e.querySelectorAll('ida > p')].map(p=>p.getAttribute('id')),volta:[...e.querySelectorAll('volta > p')].map(p=>p.getAttribute('id')),obs:e.querySelector('obs')?.textContent||'',off:e.getAttribute('off')==='true'};
     ['consIda','consVolta','kmIda','kmVolta'].forEach(f=>{const n=num(e.getAttribute(f));if(n>0)v[f]=n});['modoIda','modoVolta'].forEach(f=>{const m=e.getAttribute(f);if(m==='onibus'||m==='carona')v[f]=m});['gastoIda','gastoVolta'].forEach(f=>{const g=e.getAttribute(f);if(g!==null&&g!==''&&!isNaN(+g))v[f]=+g});['ida','volta'].forEach(leg=>{const a=[...e.querySelectorAll('enc_'+leg+' > e')].map(x=>({id:x.getAttribute('id'),pid:x.getAttribute('pid'),valor:+x.getAttribute('valor')}));if(a.length)v['enc'+LEGK[leg]]=a});o.viagens[e.getAttribute('data')]=v});
   o.pagamentos=[...r.querySelectorAll('pagamentos > pagamento')].map(e=>Object.assign(at(e,['id','pid','data','valor','obs'],['valor']),{dias:[...e.querySelectorAll('d')].map(d=>d.textContent)}));
@@ -845,6 +852,7 @@ document.addEventListener('click',e=>{
   else if(a==='pknovo'){if(!pick)return;const n=pq.trim();if(!n)return;let p=findByName(n);if(!p||norm(p.nome)!==norm(n)){p={id:uid(),nome:n.charAt(0).toUpperCase()+n.slice(1),modo:'dia',fixo:false,tarifa:S.tarifas[0].id};S.pessoas.push(p)}pkAdd(p.id)}
   else if(a==='pkclose'){pick=null;pq='';render()}
   else if(a==='encrm'){const d=dia(t.dataset.k),f='enc'+LEGK[t.dataset.leg];d[f]=(d[f]||[]).filter(e=>e.id!==id);if(!d[f].length)delete d[f];salvar();render()}
+  else if(a==='fav'){const p=pessoa(id);if(!p)return;if(p.fav)delete p.fav;else p.fav=true;salvar();toast(p.fav?'⭐ '+p.nome+' nos favoritos':p.nome+' saiu dos favoritos');const l=document.getElementById('pk-list');if(pick&&l)l.innerHTML=pickList();else render()}
   else if(a==='pfil'){pFiltro=t.dataset.v;render()}
   else if(a==='sempass'){semana=addDays(mondayOf(new Date()),-7);render()}
   else if(a==='encsave'){const v=parseFloat(String(document.getElementById('enc-valor').value).replace(',','.'));if(!(v>=0)){toast('Digite o valor da encomenda');return}S.config.encomendaValor=Math.round(v*100)/100;salvar();render();toast('Valor da encomenda salvo')}
